@@ -1,13 +1,61 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.3"
+    }
+}
+
 
 plugins {
     id 'java'
     id 'groovy'
     id 'maven'
     id 'jacoco'
+    id 'com.bmuschko.nexus' version '2.3.1'
 }
+
+apply plugin: 'io.codearte.nexus-staging'
 
 dependencies {
     compile group: 'org.apache.avro', name: 'avro', version: '1.7.7'
 
     testCompile group: 'org.spockframework', name: 'spock-core', version: versions.spock
+}
+
+modifyPom {
+    project {
+        name project.name
+        description 'JSON to Avro conversion tool designed to make migration to Avro easier'
+        url 'https://github.com/allegro/json-avro-converter'
+        inceptionYear '2016'
+
+        scm {
+            url 'https://github.com/allegro/json-avro-converter'
+            connection 'scm:git@github.com:allegro/json-avro-converter.git'
+            developerConnection 'scm:git@github.com:allegro/json-avro-converter.git'
+        }
+
+        licenses {
+            license {
+                name 'The Apache Software License, Version 2.0'
+                url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+            }
+        }
+
+        developers {
+            developer {
+                id 'skylab'
+                name 'Team Skylab'
+            }
+        }
+    }
+}
+
+nexusStaging {
+    packageGroup = "pl.allegro"
+
+    numberOfRetries = 15
+    delayBetweenRetriesInMillis = 5000
 }
