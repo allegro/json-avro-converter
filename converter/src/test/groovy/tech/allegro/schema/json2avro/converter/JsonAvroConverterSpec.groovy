@@ -1,6 +1,7 @@
 package tech.allegro.schema.json2avro.converter
 
 import groovy.json.JsonSlurper
+import org.apache.avro.AvroTypeException
 import spock.lang.Specification
 
 class JsonAvroConverterSpec extends Specification {
@@ -8,7 +9,7 @@ class JsonAvroConverterSpec extends Specification {
     def converter = new JsonAvroConverter()
     def slurper = new JsonSlurper()
 
-    def "record with primitives"() {
+    def "should convert record with primitives"() {
         given:
         def schema = '''
             {
@@ -61,7 +62,7 @@ class JsonAvroConverterSpec extends Specification {
         toMap(json) == toMap(converter.convertToJson(avro, schema))
     }
 
-    def "record with mismatched primitives"() {
+    def "should throw exception when parsing record with mismatched primitives"() {
         given:
         def schema = '''
             {
@@ -89,7 +90,7 @@ class JsonAvroConverterSpec extends Specification {
         thrown AvroConversionException
     }
 
-    def "unknown fields are ignored"() {
+    def "should ignore unknown fields"() {
         given:
         def schema = '''
             {
@@ -124,7 +125,7 @@ class JsonAvroConverterSpec extends Specification {
         result.keySet().size() == 1
     }
 
-    def "record with missing field"() {
+    def "should throw exception when field is missing"() {
         given:
         def schema = '''
             {
@@ -156,7 +157,7 @@ class JsonAvroConverterSpec extends Specification {
         thrown AvroConversionException
     }
 
-    def "nested record"() {
+    def "should convert message with nested records"() {
         given:
         def schema = '''
             {
@@ -195,7 +196,7 @@ class JsonAvroConverterSpec extends Specification {
         toMap(json) == toMap(converter.convertToJson(avro, schema))
     }
 
-    def "nested record with missing field"() {
+    def "should convert nested record with missing field"() {
         given:
         def schema = '''
             {
@@ -232,7 +233,7 @@ class JsonAvroConverterSpec extends Specification {
         thrown AvroConversionException
     }
 
-    def "nested map of primitives"() {
+    def "should convert nested map of primitives"() {
         given:
         def schema = '''
             {
@@ -266,7 +267,7 @@ class JsonAvroConverterSpec extends Specification {
         toMap(json) == toMap(converter.convertToJson(avro, schema))
     }
 
-    def "nested map with mismatched value type"() {
+    def "should fail when converting nested map with mismatched value type"() {
         given:
         def schema = '''
             {
@@ -298,7 +299,7 @@ class JsonAvroConverterSpec extends Specification {
         thrown AvroConversionException
     }
 
-    def "nested map of records"() {
+    def "should convert nested map of records"() {
         given:
         def schema = '''
             {
@@ -343,7 +344,7 @@ class JsonAvroConverterSpec extends Specification {
         toMap(json) == toMap(converter.convertToJson(avro, schema))
     }
 
-    def "nested array of primitives"() {
+    def "should convert nested array of primitives"() {
         given:
         def schema = '''
             {
@@ -378,7 +379,7 @@ class JsonAvroConverterSpec extends Specification {
         toMap(json) == toMap(converter.convertToJson(avro, schema))
     }
 
-    def "nested array of records"() {
+    def "should convert nested array of records"() {
         given:
         def schema = '''
             {
@@ -426,7 +427,7 @@ class JsonAvroConverterSpec extends Specification {
         toMap(json) == toMap(converter.convertToJson(avro, schema))
     }
 
-    def "nested union of primitives"() {
+    def "should convert nested union of primitives"() {
         given:
         def schema = '''
             {
@@ -454,7 +455,7 @@ class JsonAvroConverterSpec extends Specification {
         toMap(json) == toMap(converter.convertToJson(avro, schema))
     }
 
-    def "nested union of records"() {
+    def "should convert nested union of records"() {
         given:
         def schema = '''
             {
@@ -505,7 +506,7 @@ class JsonAvroConverterSpec extends Specification {
         toMap(json) == toMap(converter.convertToJson(avro, schema))
     }
 
-    def "nested union with null and primitive should result in an optional field"() {
+    def "should convert nested union with null and primitive should result in an optional field"() {
         given:
         def schema = '''
             {
@@ -540,7 +541,7 @@ class JsonAvroConverterSpec extends Specification {
         result.field_union == null
     }
 
-    def "nested union with null and record should result in an optional field"() {
+    def "should convert nested union with null and record should result in an optional field"() {
         given:
         def schema = '''
             {
@@ -587,7 +588,7 @@ class JsonAvroConverterSpec extends Specification {
         result.field_union == null
     }
 
-    def "nested union with null and map should result in an optional field"() {
+    def "should convert nested union with null and map should result in an optional field"() {
         given:
         def schema = '''
             {
@@ -638,7 +639,7 @@ class JsonAvroConverterSpec extends Specification {
         result.field_union == null
     }
 
-    def 'optional fields should not be wrapped when converting from avro to json'() {
+    def 'should convert optional fields should not be wrapped when converting from avro to json'() {
         given:
         def schema = '''
             {
@@ -670,6 +671,48 @@ class JsonAvroConverterSpec extends Specification {
 
         then:
         toMap(result) == toMap(json)
+    }
+
+    def 'should print full path to invalid field on error'() {
+        given:
+        def schema = '''
+            {
+              "name": "testSchema",
+              "type": "record",
+              "fields": [
+                {
+                  "name": "field",
+                  "default": null,
+                  "type": [
+                    "null",
+                    {
+                      "name": "field_type",
+                      "type": "record",
+                      "fields": [
+                        {
+                          "name": "stringValue",
+                          "type": "string"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+        '''
+
+        def json = '''
+        {
+            "field": { "stringValue": 1 }
+        }
+        '''
+
+        when:
+        converter.convertToJson(converter.convertToAvro(json.bytes, schema), schema)
+
+        then:
+        def exception = thrown(AvroConversionException)
+        exception.cause.message  ==~ /.*field\.stringValue.*/
     }
 
     def toMap(String json) {
