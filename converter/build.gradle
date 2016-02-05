@@ -1,0 +1,13 @@
+
+plugins {
+    id 'java'
+    id 'groovy'
+    id 'maven'
+    id 'jacoco'
+}
+
+dependencies {
+    compile group: 'org.apache.avro', name: 'avro', version: '1.7.7'
+
+    testCompile group: 'org.spockframework', name: 'spock-core', version: versions.spock
+}
