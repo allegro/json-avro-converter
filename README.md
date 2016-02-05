@@ -23,7 +23,7 @@ having to modify JSON data if it conforms to the JSON schema.
 
 ```groovy
 dependencies {
-    compile group: 'tech.allegro.schema.json2avro', name: 'json-avro-converter', version: 'x.x.x'
+    compile group: 'tech.allegro.schema.json2avro', name: 'converter', version: '0.2.1'
 }
 ```
 
@@ -75,7 +75,7 @@ To bundle the tool into single executable JAR:
 
 ```bash
 ./gradlew :validator:shadowJar
-java -jar validator/build/libs/json2avro-validator.jar --help
+java -jar validator/build/libs/json2avro-validator-{version}.jar --help
 ```
 
 ### Usage

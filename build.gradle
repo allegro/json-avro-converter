@@ -8,6 +8,11 @@ scmVersion {
         prefix = 'json-avro-converter'
     }
     versionCreator 'versionWithBranch'
+
+    hooks {
+        pre 'fileUpdate', [files: ['README.md'], pattern: {v, p -> /'$v'/ }, replacement: {v, p -> "'$v'"}]
+        pre 'commit'
+    }
 }
 
 sourceCompatibility = 1.8
