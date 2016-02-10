@@ -1,5 +1,7 @@
 # json-avro-converter
 
+[![Build Status](https://travis-ci.org/allegro/json-avro-converter.svg?branch=master)](https://travis-ci.org/allegro/json-avro-converter)
+
 JSON to Avro conversion tool designed to make migration to Avro easier. Includes simple command line validator.
 
 ## Motivation
@@ -112,3 +114,7 @@ If you would like to know how message will look like after encoding and decoding
 ```bash
 java -jar json2avro-validator.jar -s user.avcs -i user.json -m json2avro2json
 ```
+
+## License
+
+**json-avro-converter** is published under [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0).

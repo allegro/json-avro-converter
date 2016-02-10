@@ -1,7 +1,6 @@
 package tech.allegro.schema.json2avro.converter
 
 import groovy.json.JsonSlurper
-import org.apache.avro.AvroTypeException
 import spock.lang.Specification
 
 class JsonAvroConverterSpec extends Specification {
