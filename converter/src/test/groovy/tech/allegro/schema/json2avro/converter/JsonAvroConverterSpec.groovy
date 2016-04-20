@@ -714,6 +714,71 @@ class JsonAvroConverterSpec extends Specification {
         exception.cause.message  ==~ /.*field\.stringValue.*/
     }
 
+    def 'should parse enum types properly'() {
+        given:
+        def schema = '''
+            {
+              "name": "testSchema",
+              "type": "record",
+              "fields": [
+                  {
+                    "name" : "field_enum",
+                    "type" : {
+                        "name" : "MyEnums",
+                        "type" : "enum",
+                        "symbols" : [ "A", "B", "C" ]
+                    }
+                  }
+              ]
+            }
+        '''
+
+        def json = '''
+        {
+            "field_enum": "A"
+        }
+        '''
+
+        when:
+        def result = converter.convertToJson(converter.convertToAvro(json.bytes, schema), schema)
+
+        then:
+        toMap(result) == toMap(json)
+    }
+
+    def 'should throw the apprioriate error when passing an invalid enum type'() {
+        given:
+        def schema = '''
+            {
+              "name": "testSchema",
+              "type": "record",
+              "fields": [
+                  {
+                    "name" : "field_enum",
+                    "type" : {
+                        "name" : "MyEnums",
+                        "type" : "enum",
+                        "symbols" : [ "A", "B", "C" ]
+                    }
+                  }
+              ]
+            }
+        '''
+
+        def json = '''
+        {
+            "field_enum": "D"
+        }
+        '''
+
+        when:
+        converter.convertToJson(converter.convertToAvro(json.bytes, schema), schema)
+
+        then:
+        def exception = thrown(AvroConversionException)
+        exception.cause.message  ==~ /.*enum type and be one of A, B, C.*/
+    }
+
     def toMap(String json) {
         slurper.parseText(json)
     }
