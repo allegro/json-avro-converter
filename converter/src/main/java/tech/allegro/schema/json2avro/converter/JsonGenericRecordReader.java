@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static java.lang.String.format;
@@ -75,7 +76,7 @@ public class JsonGenericRecordReader {
             case FLOAT:   result =  ensureType(value, Number.class, path).floatValue(); break;
             case DOUBLE:  result =  ensureType(value, Number.class, path).doubleValue(); break;
             case BOOLEAN: result =  ensureType(value, Boolean.class, path); break;
-            case ENUM:    result =  ensureType(value, String.class, path); break;
+            case ENUM:    result =  ensureEnum(schema, ensureType(value, String.class, path), path); break;
             case STRING:  result =  ensureType(value, String.class, path); break;
             case NULL:    result =  ensureNull(value, path); break;
             default: throw new AvroTypeException("Unsupported type: " + field.schema().getType());
@@ -110,6 +111,15 @@ public class JsonGenericRecordReader {
         throw new AvroTypeException(format("Could not evaluate union, field %s is expected to be one of these: %s. " +
                 "If this is a complex type, check if offending field: %s adheres to schema.",
                 field.name(), types.stream().map(Schema::getType).map(Object::toString).collect(joining(",")), path(path)));
+    }
+
+    private Object ensureEnum(Schema schema, Object value, Deque<String> path) {
+        List<String> symbols = schema.getEnumSymbols();
+        if(symbols.contains(value)){
+           return value;
+        }
+        String knownSymbols = symbols.stream().map(String::valueOf).collect(Collectors.joining(", "));
+        throw new AvroTypeException(format("Field %s is expected to be of enum type and be one of %s", path(path), knownSymbols));
     }
 
     @SuppressWarnings("unchecked")
