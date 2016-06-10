@@ -1,12 +1,15 @@
 buildscript {
     repositories {
         mavenCentral()
+        maven {
+            url 'https://plugins.gradle.org/m2/'
+        }
     }
     dependencies {
-        classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.3"
+        classpath 'io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.3'
+        classpath 'gradle.plugin.me.champeau.gradle:jmh-gradle-plugin:0.3.0'
     }
 }
-
 
 plugins {
     id 'java'
@@ -14,14 +17,36 @@ plugins {
     id 'maven'
     id 'jacoco'
     id 'com.bmuschko.nexus' version '2.3.1'
+    id 'me.champeau.gradle.jmh' version '0.3.0'
 }
 
 apply plugin: 'io.codearte.nexus-staging'
+apply plugin: 'idea'
+
+configurations {
+    jmh
+}
+
+jmh {
+    include = 'tech\\.allegro\\.schema\\.json2avro\\.converter\\..*'
+    humanOutputFile = null
+    jmhVersion = '1.12'
+    iterations = 2
+    timeOnIteration = '10s'
+    fork = 1
+    warmupIterations = 1
+    warmup = '10s'
+    failOnError = true
+    threads = 1
+}
 
 dependencies {
     compile group: 'org.apache.avro', name: 'avro', version: '1.7.7'
 
     testCompile group: 'org.spockframework', name: 'spock-core', version: versions.spock
+
+    jmh 'org.openjdk.jmh:jmh-core:1.12'
+    jmh 'org.openjdk.jmh:jmh-generator-annprocess:1.12'
 }
 
 modifyPom {
@@ -59,3 +84,14 @@ nexusStaging {
     numberOfRetries = 15
     delayBetweenRetriesInMillis = 5000
 }
+
+idea {
+    module {
+        scopes.PROVIDED.plus += [ configurations.jmh ]
+    }
+}
+
+// Workaround for duplicated `BenchmarkList` and `CompilerHints` files from META-INF directory in jmh jar.
+// Those duplications can prevent from running benchmark tests.
+// More info https://github.com/melix/jmh-gradle-plugin/issues/6
+tasks.getByName('jmhJar').doFirst() {duplicatesStrategy(DuplicatesStrategy.EXCLUDE)}
