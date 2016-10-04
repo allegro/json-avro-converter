@@ -746,7 +746,7 @@ class JsonAvroConverterSpec extends Specification {
         toMap(result) == toMap(json)
     }
 
-    def 'should throw the apprioriate error when passing an invalid enum type'() {
+    def 'should throw the appropriate error when passing an invalid enum type'() {
         given:
         def schema = '''
             {

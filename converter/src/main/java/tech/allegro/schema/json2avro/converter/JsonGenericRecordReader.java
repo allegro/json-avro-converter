@@ -120,7 +120,7 @@ public class JsonGenericRecordReader {
     private Object ensureEnum(Schema schema, Object value, Deque<String> path) {
         List<String> symbols = schema.getEnumSymbols();
         if(symbols.contains(value)){
-           return value;
+           return new GenericData.EnumSymbol(schema, value);
         }
         throw enumException(path, symbols.stream().map(String::valueOf).collect(joining(", ")));
     }
