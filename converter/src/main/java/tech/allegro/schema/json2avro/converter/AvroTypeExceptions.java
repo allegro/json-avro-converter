@@ -21,11 +21,11 @@ class AvroTypeExceptions {
 
     static AvroTypeException unionException(String fieldName, String expectedTypes, Deque<String> offendingPath) {
         return new AvroTypeException(new StringBuilder()
-                .append("Could not evaluate union, field")
+                .append("Could not evaluate union, field ")
                 .append(fieldName)
-                .append("is expected to be one of these: ")
+                .append(" is expected to be one of these: ")
                 .append(expectedTypes)
-                .append("If this is a complex type, check if offending field: ")
+                .append(". If this is a complex type, check if offending field: ")
                 .append(path(offendingPath))
                 .append(" adheres to schema.")
                 .toString());
