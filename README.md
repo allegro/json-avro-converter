@@ -32,6 +32,7 @@ dependencies {
 ### Basic usage
 
 ```java
+import tech.allegro.schema.json2avro.converter.AvroConversionException;
 import tech.allegro.schema.json2avro.converter.JsonAvroConverter;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.Schema;
@@ -49,7 +50,7 @@ String json = "{ \"username\": \"mike\" }";
 JsonAvroConverter converter = new JsonAvroConverter();
 
 // conversion to binary Avro
-byte[] avro = converter.convertJsonToAvro(json.getBytes(), schema);
+byte[] avro = converter.convertToAvro(json.getBytes(), schema);
 
 // conversion to GenericData.Record
 GenericData.Record record = converter.convertToGenericDataRecord(json.getBytes(), new Schema.Parser().parse(schema));
@@ -61,9 +62,9 @@ byte[] binaryJson = converter.convertToJson(avro, schema);
 String invalidJson = "{ \"username\": 8 }";    
 
 try {
-    converter.convertJsonToAvro(invalidJson.getBytes(), schema);    
+    converter.convertToAvro(invalidJson.getBytes(), schema);    
 } catch (AvroConversionException ex) {
-    // ...
+    System.err.println("Caught exception: " + ex.getMessage());
 }
 ```
 
