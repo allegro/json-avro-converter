@@ -10,6 +10,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -91,9 +92,9 @@ public class JsonGenericRecordReader {
     }
 
     private Map<String, Object> readMap(Schema.Field field, Schema schema, Map<String, Object> map, Deque<String> path) {
-        return map.entrySet()
-                .stream()
-                .collect(toMap(Map.Entry::getKey, entry -> read(field, schema.getValueType(), entry.getValue(), path, false)));
+        Map<String, Object> result = new HashMap<>(map.size());
+        map.forEach((k, v) -> result.put(k, read(field, schema.getValueType(), v, path, false)));
+        return result;
     }
 
     private Object readUnion(Schema.Field field, Schema schema, Object value, Deque<String> path) {

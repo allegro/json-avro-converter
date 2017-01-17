@@ -779,6 +779,50 @@ class JsonAvroConverterSpec extends Specification {
         exception.cause.message  ==~ /.*enum type and be one of A, B, C.*/
     }
 
+    def 'should accept null when value can be of any nullable array/map type'() {
+        given:
+        def schema = '''
+            {
+                "type": "record",
+                "name": "testSchema",
+                "fields": [
+                    {
+                        "name": "payload",
+                        "type": [
+                            "null",
+                            {
+                                "type": "array",
+                                "items": "string"
+                            },
+                            {
+                                "type": "map",
+                                "values": [
+                                    "null",
+                                    "string",
+                                    "int"
+                                ]
+                             }
+                        ]
+                    }
+                ]
+            }
+        '''
+
+        def json = '''
+        {
+            "payload": {
+                "foo": null
+            }
+        }
+        '''
+
+        when:
+        byte[] avro = converter.convertToAvro(json.bytes, schema)
+
+        then:
+        !toMap(converter.convertToJson(avro, schema)).payload.foo
+    }
+
     def toMap(String json) {
         slurper.parseText(json)
     }
