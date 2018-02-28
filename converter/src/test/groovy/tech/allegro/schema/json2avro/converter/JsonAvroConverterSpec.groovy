@@ -1,6 +1,8 @@
 package tech.allegro.schema.json2avro.converter
 
 import groovy.json.JsonSlurper
+import org.apache.avro.specific.SpecificRecord
+import org.apache.avro.specific.SpecificRecordBase
 import spock.lang.Specification
 
 class JsonAvroConverterSpec extends Specification {
@@ -821,6 +823,23 @@ class JsonAvroConverterSpec extends Specification {
 
         then:
         !toMap(converter.convertToJson(avro, schema)).payload.foo
+    }
+
+    def 'should convert specific record'() {
+        given:
+        def json = '''
+        {
+            "test": "test"
+        }
+        '''
+        def clazz = SpecificRecordConvertTest.class
+        def schema = SpecificRecordConvertTest.getClassSchema()
+
+        when:
+        SpecificRecordConvertTest result = converter.convertToSpecificRecord(json.bytes, clazz, schema)
+
+        then:
+        result != null && result instanceof SpecificRecordConvertTest && result.getTest() == "test"
     }
 
     def toMap(String json) {

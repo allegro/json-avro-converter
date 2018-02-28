@@ -1,7 +1,21 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven {
+            url 'https://plugins.gradle.org/m2/'
+        }
+    }
+    dependencies {
+        classpath 'io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.11.0'
+    }
+}
+
 plugins {
     id 'java'
-    id 'pl.allegro.tech.build.axion-release' version '1.8.1'
+    id 'pl.allegro.tech.build.axion-release' version '1.9.0'
 }
+
+apply plugin: 'io.codearte.nexus-staging'
 
 scmVersion {
     tag {
@@ -15,6 +29,13 @@ scmVersion {
     }
 }
 
+nexusStaging {
+    packageGroup = "tech.allegro"
+
+    numberOfRetries = 15
+    delayBetweenRetriesInMillis = 5000
+}
+
 sourceCompatibility = 1.8
 
 allprojects {
@@ -25,7 +46,7 @@ allprojects {
 subprojects {
 
     project.ext.versions = [
-        spock: '1.0-groovy-2.4'
+        spock: '1.1-groovy-2.4'
     ]
 
     repositories {
@@ -40,5 +61,5 @@ subprojects {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.2.1'
+    gradleVersion = '4.5.1'
 }

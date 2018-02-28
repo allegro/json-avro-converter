@@ -1,13 +1,6 @@
 buildscript {
-    repositories {
-        mavenCentral()
-        maven {
-            url 'https://plugins.gradle.org/m2/'
-        }
-    }
     dependencies {
-        classpath 'io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.3'
-        classpath 'gradle.plugin.me.champeau.gradle:jmh-gradle-plugin:0.3.0'
+        classpath "com.commercehub.gradle.plugin:gradle-avro-plugin:0.14.0"
     }
 }
 
@@ -17,10 +10,10 @@ plugins {
     id 'maven'
     id 'jacoco'
     id 'com.bmuschko.nexus' version '2.3.1'
-    id 'me.champeau.gradle.jmh' version '0.3.0'
+    id 'me.champeau.gradle.jmh' version '0.4.5'
 }
 
-apply plugin: 'io.codearte.nexus-staging'
+apply plugin: "com.commercehub.gradle.plugin.avro"
 apply plugin: 'idea'
 
 configurations {
@@ -30,7 +23,7 @@ configurations {
 jmh {
     include = 'tech\\.allegro\\.schema\\.json2avro\\.converter\\..*'
     humanOutputFile = null
-    jmhVersion = '1.12'
+    jmhVersion = '1.20'
     iterations = 2
     timeOnIteration = '10s'
     fork = 1
@@ -41,12 +34,12 @@ jmh {
 }
 
 dependencies {
-    compile group: 'org.apache.avro', name: 'avro', version: '1.8.1'
+    compile group: 'org.apache.avro', name: 'avro', version: '1.8.2'
 
     testCompile group: 'org.spockframework', name: 'spock-core', version: versions.spock
 
-    jmh 'org.openjdk.jmh:jmh-core:1.12'
-    jmh 'org.openjdk.jmh:jmh-generator-annprocess:1.12'
+    jmh 'org.openjdk.jmh:jmh-core:1.20'
+    jmh 'org.openjdk.jmh:jmh-generator-annprocess:1.20'
 }
 
 modifyPom {
@@ -76,13 +69,6 @@ modifyPom {
             }
         }
     }
-}
-
-nexusStaging {
-    packageGroup = "tech.allegro"
-
-    numberOfRetries = 15
-    delayBetweenRetriesInMillis = 5000
 }
 
 idea {
