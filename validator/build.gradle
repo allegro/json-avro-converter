@@ -16,7 +16,7 @@ dependencies {
     compile project(':converter')
 
     compile group: 'com.beust', name: 'jcommander', version: '1.72'
-    compile group: 'com.google.guava', name: 'guava', version: '18.0'
+    compile group: 'com.google.guava', name: 'guava', version: '24.0-jre'
     compile group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.9.13'
     compile group: 'org.codehaus.jackson', name: 'jackson-core-asl', version: '1.9.13'
 
