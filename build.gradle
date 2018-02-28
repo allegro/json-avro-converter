@@ -12,7 +12,7 @@ buildscript {
 
 plugins {
     id 'java'
-    id 'pl.allegro.tech.build.axion-release' version '1.8.1'
+    id 'pl.allegro.tech.build.axion-release' version '1.9.0'
 }
 
 apply plugin: 'io.codearte.nexus-staging'
