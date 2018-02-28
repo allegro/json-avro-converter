@@ -1,7 +1,21 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven {
+            url 'https://plugins.gradle.org/m2/'
+        }
+    }
+    dependencies {
+        classpath 'io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.11.0'
+    }
+}
+
 plugins {
     id 'java'
     id 'pl.allegro.tech.build.axion-release' version '1.8.1'
 }
+
+apply plugin: 'io.codearte.nexus-staging'
 
 scmVersion {
     tag {
@@ -13,6 +27,13 @@ scmVersion {
         pre 'fileUpdate', [files: ['README.md'], pattern: {v, p -> /'$v'/ }, replacement: {v, p -> "'$v'"}]
         pre 'commit'
     }
+}
+
+nexusStaging {
+    packageGroup = "tech.allegro"
+
+    numberOfRetries = 15
+    delayBetweenRetriesInMillis = 5000
 }
 
 sourceCompatibility = 1.8

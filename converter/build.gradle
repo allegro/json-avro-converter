@@ -6,7 +6,6 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.3'
         classpath 'gradle.plugin.me.champeau.gradle:jmh-gradle-plugin:0.3.0'
     }
 }
@@ -20,7 +19,6 @@ plugins {
     id 'me.champeau.gradle.jmh' version '0.3.0'
 }
 
-apply plugin: 'io.codearte.nexus-staging'
 apply plugin: 'idea'
 
 configurations {
@@ -76,13 +74,6 @@ modifyPom {
             }
         }
     }
-}
-
-nexusStaging {
-    packageGroup = "tech.allegro"
-
-    numberOfRetries = 15
-    delayBetweenRetriesInMillis = 5000
 }
 
 idea {
