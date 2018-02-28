@@ -7,7 +7,6 @@ buildscript {
     }
     dependencies {
         classpath 'io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.3'
-        classpath 'gradle.plugin.me.champeau.gradle:jmh-gradle-plugin:0.3.0'
     }
 }
 
@@ -17,7 +16,7 @@ plugins {
     id 'maven'
     id 'jacoco'
     id 'com.bmuschko.nexus' version '2.3.1'
-    id 'me.champeau.gradle.jmh' version '0.3.0'
+    id 'me.champeau.gradle.jmh' version '0.4.5'
 }
 
 apply plugin: 'io.codearte.nexus-staging'
