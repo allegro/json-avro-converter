@@ -25,7 +25,7 @@ dependencies {
 
     testCompile group: 'org.codehaus.groovy', name: 'groovy-all', version: '2.4.13'
     testCompile group: 'org.spockframework', name: 'spock-core', version: versions.spock
-    testCompile group: 'com.jayway.awaitility', name: 'awaitility', version: '1.6.2'
+    testCompile group: 'com.jayway.awaitility', name: 'awaitility', version: '1.7.0'
 }
 
 mainClassName = 'tech.allegro.schema.json2avro.validator.ValidatorRunner'
