@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'pl.allegro.tech.build.axion-release' version '1.8.1'
+    id 'pl.allegro.tech.build.axion-release' version '1.9.0'
 }
 
 scmVersion {
@@ -25,7 +25,7 @@ allprojects {
 subprojects {
 
     project.ext.versions = [
-        spock: '1.0-groovy-2.4'
+        spock: '1.1-groovy-2.4'
     ]
 
     repositories {
@@ -40,5 +40,5 @@ subprojects {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.2.1'
+    gradleVersion = '4.5.1'
 }

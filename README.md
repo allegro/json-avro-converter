@@ -17,6 +17,7 @@ having to modify JSON data if it conforms to the JSON schema.
 
 * conversion binary JSON to binary Avro
 * conversion binary JSON to GenericData.Record
+* conversion binary JSON to Avro generated Java classes
 * conversion binary Avro to binary JSON
 * optional field support (unions do not require wrapping)
 * unknown fields that are not declared in schema are ignored

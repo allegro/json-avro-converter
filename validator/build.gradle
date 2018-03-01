@@ -4,7 +4,7 @@ plugins {
     id 'groovy'
     id 'jacoco'
     id 'application'
-    id 'com.github.johnrengelman.shadow' version '2.0.1'
+    id 'com.github.johnrengelman.shadow' version '2.0.2'
 }
 
 shadowJar {
@@ -15,17 +15,17 @@ shadowJar {
 dependencies {
     compile project(':converter')
 
-    compile group: 'com.beust', name: 'jcommander', version: '1.48'
-    compile group: 'com.google.guava', name: 'guava', version: '18.0'
+    compile group: 'com.beust', name: 'jcommander', version: '1.72'
+    compile group: 'com.google.guava', name: 'guava', version: '24.0-jre'
     compile group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.9.13'
     compile group: 'org.codehaus.jackson', name: 'jackson-core-asl', version: '1.9.13'
 
-    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.7'
-    compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.1.3'
+    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+    compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
 
-    testCompile group: 'org.codehaus.groovy', name: 'groovy-all', version: '2.4.5'
+    testCompile group: 'org.codehaus.groovy', name: 'groovy-all', version: '2.4.13'
     testCompile group: 'org.spockframework', name: 'spock-core', version: versions.spock
-    testCompile group: 'com.jayway.awaitility', name: 'awaitility', version: '1.6.2'
+    testCompile group: 'com.jayway.awaitility', name: 'awaitility', version: '1.7.0'
 }
 
 mainClassName = 'tech.allegro.schema.json2avro.validator.ValidatorRunner'
