@@ -1,0 +1,7 @@
+{"namespace": "tech.allegro.schema.json2avro.converter",
+ "type": "record",
+ "name": "SpecificRecordConvertTest",
+ "fields": [
+     {"name": "test", "type": "string"}
+ ]
+}
