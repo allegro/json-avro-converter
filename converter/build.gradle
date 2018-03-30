@@ -15,7 +15,8 @@ plugins {
     id 'java'
     id 'groovy'
     id 'maven'
-    id 'jacoco'
+    // does not work with Java 10
+    // id 'jacoco'
     id 'com.bmuschko.nexus' version '2.3.1'
     id 'me.champeau.gradle.jmh' version '0.4.5'
 }
@@ -39,12 +40,14 @@ jmh {
     warmup = '10s'
     failOnError = true
     threads = 1
+    duplicateClassesStrategy = 'warn'
 }
 
 dependencies {
     compile group: 'org.apache.avro', name: 'avro', version: '1.8.2'
 
     testCompile group: 'org.spockframework', name: 'spock-core', version: versions.spock
+    testCompile group: 'org.codehaus.groovy', name: 'groovy-all', version: versions.groovy
 
     jmh 'org.openjdk.jmh:jmh-core:1.20'
     jmh 'org.openjdk.jmh:jmh-generator-annprocess:1.20'
