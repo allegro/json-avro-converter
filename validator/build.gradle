@@ -2,7 +2,8 @@
 plugins {
     id 'java'
     id 'groovy'
-    id 'jacoco'
+    // does not work with Java 10
+    // id 'jacoco'
     id 'application'
     id 'com.github.johnrengelman.shadow' version '4.0.0'
 }
@@ -23,8 +24,8 @@ dependencies {
     compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
     compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
 
-    testCompile group: 'org.codehaus.groovy', name: 'groovy-all', version: '2.4.13'
     testCompile group: 'org.spockframework', name: 'spock-core', version: versions.spock
+    testCompile group: 'org.codehaus.groovy', name: 'groovy-all', version: versions.groovy
     testCompile group: 'com.jayway.awaitility', name: 'awaitility', version: '1.7.0'
 }
 
