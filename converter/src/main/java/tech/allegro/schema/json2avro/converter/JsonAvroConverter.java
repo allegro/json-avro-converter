@@ -16,6 +16,8 @@ import org.apache.avro.specific.SpecificRecord;
 import org.apache.avro.specific.SpecificRecordBase;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import tech.allegro.schema.json2avro.converter.JsonGenericRecordReader.OnUnknownProperty;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -29,6 +31,10 @@ public class JsonAvroConverter {
 
     public JsonAvroConverter(ObjectMapper objectMapper) {
         this.recordReader = new JsonGenericRecordReader(objectMapper);
+    }
+    
+    public JsonAvroConverter(ObjectMapper objectMapper, OnUnknownProperty onUnknownProperty) {
+        this.recordReader = new JsonGenericRecordReader(objectMapper, onUnknownProperty);
     }
 
     public byte[] convertToAvro(byte[] data, String schema) {

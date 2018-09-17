@@ -5,9 +5,14 @@ import org.apache.avro.specific.SpecificRecord
 import org.apache.avro.specific.SpecificRecordBase
 import spock.lang.Specification
 
+import org.codehaus.jackson.map.ObjectMapper;
+import tech.allegro.schema.json2avro.converter.JsonGenericRecordReader.OnUnknownProperty;
+
+
 class JsonAvroConverterSpec extends Specification {
 
-    def converter = new JsonAvroConverter()
+    def converter = new JsonAvroConverter(new ObjectMapper(), OnUnknownProperty.LOG)
+    def converterFailOnUnknown = new JsonAvroConverter(new ObjectMapper(), OnUnknownProperty.FAIL)
     def slurper = new JsonSlurper()
 
     def "should convert record with primitives"() {
@@ -124,6 +129,39 @@ class JsonAvroConverterSpec extends Specification {
         def result = toMap(converter.convertToJson(avro, schema))
         result.field_string == "foobar"
         result.keySet().size() == 1
+    }
+    
+    def "should fail unknown fields"() {
+        given:
+        def schema = '''
+            {
+              "type" : "record",
+              "name" : "testSchema",
+              "fields" : [
+                  {
+                    "name" : "field_string",
+                    "type" : "string"
+                  }
+              ]
+            }
+        '''
+
+        def json = '''
+        {
+            "field_integer": 1,
+            "field_long": 2,
+            "field_float": 1.1,
+            "field_double": 1.2,
+            "field_boolean": true,
+            "field_string": "foobar"
+        }
+        '''
+
+        when:
+        converterFailOnUnknown.convertToAvro(json.bytes, schema)
+
+        then:
+        thrown AvroConversionException
     }
 
     def "should throw exception when field is missing"() {
