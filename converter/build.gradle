@@ -45,6 +45,8 @@ dependencies {
     compile group: 'org.apache.avro', name: 'avro', version: '1.8.2'
 
     testCompile group: 'org.spockframework', name: 'spock-core', version: versions.spock
+    
+    testCompile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
 
     jmh 'org.openjdk.jmh:jmh-core:1.20'
     jmh 'org.openjdk.jmh:jmh-generator-annprocess:1.20'
