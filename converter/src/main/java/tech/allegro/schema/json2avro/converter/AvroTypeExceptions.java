@@ -1,13 +1,13 @@
 package tech.allegro.schema.json2avro.converter;
 
-import org.apache.avro.AvroTypeException;
+import static java.util.Spliterator.*;
+import static java.util.Spliterators.*;
+import static java.util.stream.Collectors.*;
 
 import java.util.Deque;
 import java.util.stream.StreamSupport;
 
-import static java.util.Spliterator.ORDERED;
-import static java.util.Spliterators.spliteratorUnknownSize;
-import static java.util.stream.Collectors.joining;
+import org.apache.avro.AvroTypeException;
 
 class AvroTypeExceptions {
     static AvroTypeException enumException(Deque<String> fieldPath, String expectedSymbols) {
@@ -39,8 +39,17 @@ class AvroTypeExceptions {
             .append(expectedType)
             .toString());
     }
+    
+    static AvroTypeException UnknownException(String field, Deque<String> fieldPath) {
+    	fieldPath.push(field);
+        return new AvroTypeException(new StringBuilder()
+            .append("Field ")
+            .append(path(fieldPath))
+            .append(" is unknown")
+            .toString());
+    }
 
-    private static String path(Deque<String> path) {
+    static String path(Deque<String> path) {
         return StreamSupport.stream(spliteratorUnknownSize(path.descendingIterator(), ORDERED), false)
                 .map(Object::toString).collect(joining("."));
     }

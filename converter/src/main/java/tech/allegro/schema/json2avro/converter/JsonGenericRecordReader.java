@@ -3,16 +3,15 @@ package tech.allegro.schema.json2avro.converter;
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.AvroTypeException;
 import org.apache.avro.Schema;
+import org.apache.avro.Schema.Field;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecordBuilder;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 import static java.util.Optional.ofNullable;
@@ -21,14 +20,27 @@ import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.*;
 
 public class JsonGenericRecordReader {
     private static final Object INCOMPATIBLE = new Object();
-    private final ObjectMapper mapper;
+    private static final Logger logger = LoggerFactory.getLogger(JsonGenericRecordReader.class);
 
+    public enum OnUnknownProperty {
+    	FAIL, LOG, IGNORE;
+    }
+    
+    private final ObjectMapper mapper;
+    private final OnUnknownProperty onUnknownProperty;
+    
+    
     public JsonGenericRecordReader() {
         this(new ObjectMapper());
     }
 
     public JsonGenericRecordReader(ObjectMapper mapper) {
+       this(mapper, OnUnknownProperty.IGNORE);
+    }
+    
+    public JsonGenericRecordReader(ObjectMapper mapper, OnUnknownProperty onUnknownProperty) {
         this.mapper = mapper;
+        this.onUnknownProperty = onUnknownProperty;
     }
 
     @SuppressWarnings("unchecked")
@@ -51,9 +63,27 @@ public class JsonGenericRecordReader {
 
     private GenericData.Record readRecord(Map<String,Object> json, Schema schema, Deque<String> path) {
             GenericRecordBuilder record = new GenericRecordBuilder(schema);
-            json.entrySet().forEach(entry ->
-                    ofNullable(schema.getField(entry.getKey()))
-                            .ifPresent(field -> record.set(field, read(field, field.schema(), entry.getValue(), path, false))));
+            json.entrySet().forEach(entry -> {
+                    Optional<Field> optional = ofNullable(schema.getField(entry.getKey()));
+                    if (optional.isPresent()) {
+                    	Field field = optional.get();
+                    	record.set(field, read(field, field.schema(), entry.getValue(), path, false));
+                    } else {
+                    	switch (onUnknownProperty) {
+						case FAIL:
+							throw AvroTypeExceptions.UnknownException(entry.getKey(), path);
+						case LOG:
+							path.push(entry.getKey());
+							logger.warn("Unknow field {} with value {}", AvroTypeExceptions.path(path), entry.getValue());
+							path.pop();
+							break;
+						case IGNORE:
+							break;
+						default:
+							break;
+						}
+                    }     
+            });
             return record.build();
     }
 
