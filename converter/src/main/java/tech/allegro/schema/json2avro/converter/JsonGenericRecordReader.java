@@ -1,34 +1,37 @@
 package tech.allegro.schema.json2avro.converter;
 
+import static java.util.stream.Collectors.*;
+import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.*;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.function.Function;
+
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.AvroTypeException;
 import org.apache.avro.Schema;
+import org.apache.avro.Schema.Field;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecordBuilder;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import java.io.IOException;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-
-import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.*;
-import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.*;
-
 public class JsonGenericRecordReader {
     private static final Object INCOMPATIBLE = new Object();
     private final ObjectMapper mapper;
-
+    private final UnknownFieldListener unknownFieldListener;
+    
+    
     public JsonGenericRecordReader() {
         this(new ObjectMapper());
     }
 
     public JsonGenericRecordReader(ObjectMapper mapper) {
+       this(mapper, null);
+    }
+    
+    public JsonGenericRecordReader(ObjectMapper mapper, UnknownFieldListener unknownFieldListener) {
         this.mapper = mapper;
+        this.unknownFieldListener = unknownFieldListener;
     }
 
     @SuppressWarnings("unchecked")
@@ -51,17 +54,24 @@ public class JsonGenericRecordReader {
 
     private GenericData.Record readRecord(Map<String,Object> json, Schema schema, Deque<String> path) {
             GenericRecordBuilder record = new GenericRecordBuilder(schema);
-            json.entrySet().forEach(entry ->
-                    ofNullable(schema.getField(entry.getKey()))
-                            .ifPresent(field -> record.set(field, read(field, field.schema(), entry.getValue(), path, false))));
+            json.entrySet().forEach(entry -> {
+            		Field field = schema.getField(entry.getKey());
+                    if (field != null) {
+                    	record.set(field, read(field, field.schema(), entry.getValue(), path, false));
+                    } else if (unknownFieldListener != null) {
+                    	path.addLast(entry.getKey());
+                    	unknownFieldListener.onUnknownField(entry.getKey(), entry.getValue(), path.stream().collect(joining(".")));
+						path.removeLast();
+                    }     
+            });
             return record.build();
     }
 
     @SuppressWarnings("unchecked")
     private Object read(Schema.Field field, Schema schema, Object value, Deque<String> path, boolean silently) {
-        boolean pushed = !field.name().equals(path.peek());
+        boolean pushed = !field.name().equals(path.peekLast());
         if(pushed) {
-            path.push(field.name());
+            path.addLast(field.name());
         }
         Object result;
 
@@ -82,7 +92,7 @@ public class JsonGenericRecordReader {
         }
 
         if(pushed) {
-            path.pop();
+            path.removeLast();
         }
         return result;
     }
