@@ -1,11 +1,8 @@
 package tech.allegro.schema.json2avro.converter;
 
-import static java.util.Spliterator.*;
-import static java.util.Spliterators.*;
 import static java.util.stream.Collectors.*;
 
 import java.util.Deque;
-import java.util.stream.StreamSupport;
 
 import org.apache.avro.AvroTypeException;
 
@@ -40,8 +37,7 @@ class AvroTypeExceptions {
             .toString());
     }
 
-    static String path(Deque<String> path) {
-        return StreamSupport.stream(spliteratorUnknownSize(path.descendingIterator(), ORDERED), false)
-                .map(Object::toString).collect(joining("."));
+    private static String path(Deque<String> path) {
+        return path.stream().collect(joining("."));
     }
 }

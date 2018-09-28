@@ -59,9 +59,9 @@ public class JsonGenericRecordReader {
                     if (field != null) {
                     	record.set(field, read(field, field.schema(), entry.getValue(), path, false));
                     } else if (unknownFieldListener != null) {
-                    	path.push(entry.getKey());
-                    	unknownFieldListener.onUnknownField(entry.getKey(), entry.getValue(), AvroTypeExceptions.path(path));
-						path.pop();
+                    	path.addLast(entry.getKey());
+                    	unknownFieldListener.onUnknownField(entry.getKey(), entry.getValue(), path.stream().collect(joining(".")));
+						path.removeLast();
                     }     
             });
             return record.build();
@@ -69,9 +69,9 @@ public class JsonGenericRecordReader {
 
     @SuppressWarnings("unchecked")
     private Object read(Schema.Field field, Schema schema, Object value, Deque<String> path, boolean silently) {
-        boolean pushed = !field.name().equals(path.peek());
+        boolean pushed = !field.name().equals(path.peekLast());
         if(pushed) {
-            path.push(field.name());
+            path.addLast(field.name());
         }
         Object result;
 
@@ -92,7 +92,7 @@ public class JsonGenericRecordReader {
         }
 
         if(pushed) {
-            path.pop();
+            path.removeLast();
         }
         return result;
     }
