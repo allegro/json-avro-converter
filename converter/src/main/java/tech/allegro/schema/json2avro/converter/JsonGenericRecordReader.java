@@ -1,12 +1,5 @@
 package tech.allegro.schema.json2avro.converter;
 
-import static java.util.stream.Collectors.*;
-import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.*;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.function.Function;
-
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.AvroTypeException;
 import org.apache.avro.Schema;
@@ -15,20 +8,34 @@ import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecordBuilder;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import java.io.IOException;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
+import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.enumException;
+import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.typeException;
+import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.unionException;
+
 public class JsonGenericRecordReader {
     private static final Object INCOMPATIBLE = new Object();
     private final ObjectMapper mapper;
     private final UnknownFieldListener unknownFieldListener;
-    
-    
+
+
     public JsonGenericRecordReader() {
         this(new ObjectMapper());
     }
 
     public JsonGenericRecordReader(ObjectMapper mapper) {
-       this(mapper, null);
+        this(mapper, null);
     }
-    
+
     public JsonGenericRecordReader(ObjectMapper mapper, UnknownFieldListener unknownFieldListener) {
         this.mapper = mapper;
         this.unknownFieldListener = unknownFieldListener;
@@ -43,7 +50,7 @@ public class JsonGenericRecordReader {
         }
     }
 
-    public GenericData.Record read(Map<String,Object> json, Schema schema) {
+    public GenericData.Record read(Map<String, Object> json, Schema schema) {
         Deque<String> path = new ArrayDeque<>();
         try {
             return readRecord(json, schema, path);
@@ -52,46 +59,69 @@ public class JsonGenericRecordReader {
         }
     }
 
-    private GenericData.Record readRecord(Map<String,Object> json, Schema schema, Deque<String> path) {
-            GenericRecordBuilder record = new GenericRecordBuilder(schema);
-            json.entrySet().forEach(entry -> {
-            		Field field = schema.getField(entry.getKey());
-                    if (field != null) {
-                    	record.set(field, read(field, field.schema(), entry.getValue(), path, false));
-                    } else if (unknownFieldListener != null) {
-                    	path.addLast(entry.getKey());
-                    	unknownFieldListener.onUnknownField(entry.getKey(), entry.getValue(), path.stream().collect(joining(".")));
-						path.removeLast();
-                    }     
-            });
-            return record.build();
+    private GenericData.Record readRecord(Map<String, Object> json, Schema schema, Deque<String> path) {
+        GenericRecordBuilder record = new GenericRecordBuilder(schema);
+        json.entrySet().forEach(entry -> {
+            Field field = schema.getField(entry.getKey());
+            if (field != null) {
+                record.set(field, read(field, field.schema(), entry.getValue(), path, false));
+            } else if (unknownFieldListener != null) {
+                unknownFieldListener.onUnknownField(entry.getKey(), entry.getValue(), PathsPrinter.print(path, entry.getKey()));
+            }
+        });
+        return record.build();
     }
 
     @SuppressWarnings("unchecked")
     private Object read(Schema.Field field, Schema schema, Object value, Deque<String> path, boolean silently) {
         boolean pushed = !field.name().equals(path.peekLast());
-        if(pushed) {
+        if (pushed) {
             path.addLast(field.name());
         }
         Object result;
 
         switch (schema.getType()) {
-            case RECORD:  result = onValidType(value, Map.class, path, silently, map -> readRecord(map, schema, path)); break;
-            case ARRAY:   result = onValidType(value, List.class, path, silently, list -> readArray(field, schema, list, path)); break;
-            case MAP:     result = onValidType(value, Map.class, path, silently, map -> readMap(field, schema, map, path)); break;
-            case UNION:   result = readUnion(field, schema, value, path); break;
-            case INT:     result = onValidNumber(value, path, silently, Number::intValue); break;
-            case LONG:    result = onValidNumber(value, path, silently, Number::longValue); break;
-            case FLOAT:   result = onValidNumber(value, path, silently, Number::floatValue); break;
-            case DOUBLE:  result = onValidNumber(value, path, silently, Number::doubleValue); break;
-            case BOOLEAN: result = onValidType(value, Boolean.class, path, silently, bool -> bool); break;
-            case ENUM:    result = onValidType(value, String.class, path, silently, string -> ensureEnum(schema, string, path)); break;
-            case STRING:  result = onValidType(value, String.class, path, silently, string -> string); break;
-            case NULL:    result = value == null ? value : INCOMPATIBLE; break;
-            default: throw new AvroTypeException("Unsupported type: " + field.schema().getType());
+            case RECORD:
+                result = onValidType(value, Map.class, path, silently, map -> readRecord(map, schema, path));
+                break;
+            case ARRAY:
+                result = onValidType(value, List.class, path, silently, list -> readArray(field, schema, list, path));
+                break;
+            case MAP:
+                result = onValidType(value, Map.class, path, silently, map -> readMap(field, schema, map, path));
+                break;
+            case UNION:
+                result = readUnion(field, schema, value, path);
+                break;
+            case INT:
+                result = onValidNumber(value, path, silently, Number::intValue);
+                break;
+            case LONG:
+                result = onValidNumber(value, path, silently, Number::longValue);
+                break;
+            case FLOAT:
+                result = onValidNumber(value, path, silently, Number::floatValue);
+                break;
+            case DOUBLE:
+                result = onValidNumber(value, path, silently, Number::doubleValue);
+                break;
+            case BOOLEAN:
+                result = onValidType(value, Boolean.class, path, silently, bool -> bool);
+                break;
+            case ENUM:
+                result = onValidType(value, String.class, path, silently, string -> ensureEnum(schema, string, path));
+                break;
+            case STRING:
+                result = onValidType(value, String.class, path, silently, string -> string);
+                break;
+            case NULL:
+                result = value == null ? value : INCOMPATIBLE;
+                break;
+            default:
+                throw new AvroTypeException("Unsupported type: " + field.schema().getType());
         }
 
-        if(pushed) {
+        if (pushed) {
             path.removeLast();
         }
         return result;
@@ -130,8 +160,8 @@ public class JsonGenericRecordReader {
 
     private Object ensureEnum(Schema schema, Object value, Deque<String> path) {
         List<String> symbols = schema.getEnumSymbols();
-        if(symbols.contains(value)){
-           return new GenericData.EnumSymbol(schema, value);
+        if (symbols.contains(value)) {
+            return new GenericData.EnumSymbol(schema, value);
         }
         throw enumException(path, symbols.stream().map(String::valueOf).collect(joining(", ")));
     }
