@@ -10,7 +10,7 @@ class AvroTypeExceptions {
     static AvroTypeException enumException(Deque<String> fieldPath, String expectedSymbols) {
         return new AvroTypeException(new StringBuilder()
                 .append("Field ")
-                .append(path(fieldPath))
+                .append(PathsPrinter.print(fieldPath))
                 .append(" is expected to be of enum type and be one of ")
                 .append(expectedSymbols)
                 .toString());
@@ -23,7 +23,7 @@ class AvroTypeExceptions {
                 .append(" is expected to be one of these: ")
                 .append(expectedTypes)
                 .append(". If this is a complex type, check if offending field: ")
-                .append(path(offendingPath))
+                .append(PathsPrinter.print(offendingPath))
                 .append(" adheres to schema.")
                 .toString());
     }
@@ -31,13 +31,9 @@ class AvroTypeExceptions {
     static AvroTypeException typeException(Deque<String> fieldPath, String expectedType) {
         return new AvroTypeException(new StringBuilder()
             .append("Field ")
-            .append(path(fieldPath))
+            .append(PathsPrinter.print(fieldPath))
             .append(" is expected to be type: ")
             .append(expectedType)
             .toString());
-    }
-
-    private static String path(Deque<String> path) {
-        return path.stream().collect(joining("."));
     }
 }
