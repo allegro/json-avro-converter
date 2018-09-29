@@ -65,10 +65,13 @@ public class ValidatorRunner {
 
     private static ValidatorOptions parseCommandLine(String[] args) {
         ValidatorOptions options = new ValidatorOptions();
-        JCommander commander = new JCommander(options, args);
+
+        JCommander commander = new JCommander(options);
+        commander.parse(args);
+
         commander.setProgramName("java -jar json2avro-validator.jar");
 
-        if(options.isHelp()) {
+        if (options.isHelp()) {
             commander.usage();
             System.exit(0);
         }
