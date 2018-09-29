@@ -166,6 +166,7 @@ public class JsonGenericRecordReader {
         throw enumException(path, symbols.stream().map(String::valueOf).collect(joining(", ")));
     }
 
+    @SuppressWarnings("unchecked")
     public <T> Object onValidType(Object value, Class<T> type, Deque<String> path, boolean silently, Function<T, Object> function)
             throws AvroTypeException {
 
