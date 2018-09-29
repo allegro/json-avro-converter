@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'pl.allegro.tech.build.axion-release' version '1.9.0'
+    id 'pl.allegro.tech.build.axion-release' version '1.9.2'
 }
 
 scmVersion {
@@ -37,8 +37,4 @@ subprojects {
             exceptionFormat 'full'
         }
     }
-}
-
-task wrapper(type: Wrapper) {
-    gradleVersion = '4.5.1'
 }
