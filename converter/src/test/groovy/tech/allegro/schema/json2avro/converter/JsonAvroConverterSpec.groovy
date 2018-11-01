@@ -86,7 +86,7 @@ class JsonAvroConverterSpec extends Specification {
 
         def json = '''
         {
-            "field_bytes": "aGVsbG8gd29ybGQ="
+            "field_bytes": "\\u0001\\u0002\\u0003"
         }
         '''
 
