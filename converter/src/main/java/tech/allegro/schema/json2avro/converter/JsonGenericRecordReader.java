@@ -1,5 +1,7 @@
 package tech.allegro.schema.json2avro.converter;
 
+import java.nio.ByteBuffer;
+import java.util.Base64;
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.AvroTypeException;
 import org.apache.avro.Schema;
@@ -114,6 +116,9 @@ public class JsonGenericRecordReader {
             case STRING:
                 result = onValidType(value, String.class, path, silently, string -> string);
                 break;
+            case BYTES:
+                result = onValidType(value, String.class, path, silently, string -> decodeBase64(string));
+                break;
             case NULL:
                 result = value == null ? value : INCOMPATIBLE;
                 break;
@@ -164,6 +169,10 @@ public class JsonGenericRecordReader {
             return new GenericData.EnumSymbol(schema, value);
         }
         throw enumException(path, symbols.stream().map(String::valueOf).collect(joining(", ")));
+    }
+
+    private ByteBuffer decodeBase64(String encoded) {
+        return ByteBuffer.wrap(Base64.getDecoder().decode(encoded));
     }
 
     @SuppressWarnings("unchecked")

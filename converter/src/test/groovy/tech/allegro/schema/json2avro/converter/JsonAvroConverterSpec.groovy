@@ -68,6 +68,35 @@ class JsonAvroConverterSpec extends Specification {
         toMap(json) == toMap(converter.convertToJson(avro, schema))
     }
 
+
+    def 'should convert bytes generic record'() {
+        given:
+        def schema = '''
+            {
+              "type" : "record",
+              "name" : "testSchema",
+              "fields" : [
+                  {
+                    "name" : "field_bytes",
+                    "type" : "bytes"
+                  }
+              ]
+            }
+        '''
+
+        def json = '''
+        {
+            "field_bytes": "aGVsbG8gd29ybGQ="
+        }
+        '''
+
+        when:
+        byte[] avro = converter.convertToAvro(json.bytes, schema)
+
+        then:
+        toMap(json) == toMap(converter.convertToJson(avro, schema))
+    }
+
     def "should throw exception when parsing record with mismatched primitives"() {
         given:
         def schema = '''
