@@ -2,6 +2,7 @@
  "type": "record",
  "name": "SpecificRecordConvertTest",
  "fields": [
-     {"name": "test", "type": "string"}
+     {"name": "test", "type": "string"},
+     {"name": "enumTest", "type": { "type": "enum", "name": "status", "symbols": ["s1", "s2"]}}
  ]
 }

@@ -896,7 +896,8 @@ class JsonAvroConverterSpec extends Specification {
         given:
         def json = '''
         {
-            "test": "test"
+            "test": "test",
+            "enumTest": "s1"
         }
         '''
         def clazz = SpecificRecordConvertTest.class
@@ -904,10 +905,24 @@ class JsonAvroConverterSpec extends Specification {
 
         when:
         SpecificRecordConvertTest result = converter.convertToSpecificRecord(json.bytes, clazz, schema)
-
+        converter.convertToJson(result)
         then:
         result != null && result instanceof SpecificRecordConvertTest && result.getTest() == "test"
     }
+
+    def 'should convert specific record and back to json'() {
+        given:
+        def json = '''{"test":"test","enumTest":"s1"}'''
+        def clazz = SpecificRecordConvertTest.class
+        def schema = SpecificRecordConvertTest.getClassSchema()
+
+        when:
+        SpecificRecordConvertTest record = converter.convertToSpecificRecord(json.bytes, clazz, schema)
+        def result = converter.convertToJson(record)
+        then:
+        result != null && new String(result) == json
+    }
+
 
     def toMap(String json) {
         slurper.parseText(json)
