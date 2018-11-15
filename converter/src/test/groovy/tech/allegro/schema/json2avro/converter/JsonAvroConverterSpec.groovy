@@ -905,7 +905,6 @@ class JsonAvroConverterSpec extends Specification {
 
         when:
         SpecificRecordConvertTest result = converter.convertToSpecificRecord(json.bytes, clazz, schema)
-        converter.convertToJson(result)
         then:
         result != null && result instanceof SpecificRecordConvertTest && result.getTest() == "test"
     }
