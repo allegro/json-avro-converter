@@ -2,23 +2,23 @@
 
 [![Build Status](https://travis-ci.org/allegro/json-avro-converter.svg?branch=master)](https://travis-ci.org/allegro/json-avro-converter)
 
-JSON to Avro conversion tool designed to make migration to Avro easier. Includes simple command line validator.
+This project is a JSON to Avro conversion tool designed to make migration to Avro easier. It includes a simple command line validator.
 
 ## Motivation
 
 Apache Avro ships with some very advanced and efficient tools for reading and writing binary Avro but their support 
 for JSON to Avro conversion is unfortunately limited and requires wrapping fields with type declarations if you have
-some optional fields in your schema. This tool is supposed to help with migrating project from using JSON to Avro without
+some optional fields in your schema. This tool is supposed to help with migrating projects from using JSON to Avro without
 having to modify JSON data if it conforms to the JSON schema.
 
 ## JSON2Avro Converter
 
 ### Features
 
-* conversion binary JSON to binary Avro
-* conversion binary JSON to GenericData.Record
-* conversion binary JSON to Avro generated Java classes
-* conversion binary Avro to binary JSON
+* conversion of binary JSON to binary Avro
+* conversion of binary JSON to GenericData.Record
+* conversion of binary JSON to Avro generated Java classes
+* conversion of binary Avro to binary JSON
 * optional field support (unions do not require wrapping)
 * unknown fields that are not declared in schema are ignored
 
@@ -71,7 +71,7 @@ try {
 
 ## Validator
 
-A command line tool for validating your JSON/Avro documents against the schema.
+A command line tool for validating your JSON/Avro documents against a schema.
 
 ### Build
 
@@ -84,7 +84,7 @@ java -jar validator/build/libs/json2avro-validator-{version}.jar --help
 
 ### Usage
 
-Running Validator with `--help` option will print help message listing all possible arguments.
+Running Validator with `--help` option will print a help message listing all possible arguments.
 Sample Avro schema and messages can be found in:
 
 * schema: `validator/src/test/resources/user.avcs`
@@ -99,7 +99,7 @@ You can validate your JSON to Avro conversion:
 java -jar json2avro-validator.jar -s user.avcs -i user.json
 ```
 
-If everything will process correctly, the process will end with zero status code.
+If everything processes correctly, the process will end with zero status code.
  
 #### Avro to JSON
  
@@ -111,7 +111,7 @@ java -jar json2avro-validator.jar -s user.avcs -i user.avro -m avro2json
 
 #### JSON to Avro to JSON
 
-If you would like to know how message will look like after encoding and decoding invoke:
+If you would like to know how messages will look like after encoding and decoding invoke:
 
 ```bash
 java -jar json2avro-validator.jar -s user.avcs -i user.json -m json2avro2json
