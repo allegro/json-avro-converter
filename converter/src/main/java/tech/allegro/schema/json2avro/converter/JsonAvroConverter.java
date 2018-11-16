@@ -7,11 +7,13 @@ import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.BinaryDecoder;
 import org.apache.avro.io.BinaryEncoder;
+import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.Decoder;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.io.NoWrappingJsonEncoder;
 import org.apache.avro.specific.SpecificDatumReader;
+import org.apache.avro.specific.SpecificDatumWriter;
 import org.apache.avro.specific.SpecificRecord;
 import org.apache.avro.specific.SpecificRecordBase;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -91,7 +93,10 @@ public class JsonAvroConverter {
         try {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             NoWrappingJsonEncoder jsonEncoder = new NoWrappingJsonEncoder(record.getSchema(), outputStream);
-            new GenericDatumWriter<GenericRecord>(record.getSchema()).write(record, jsonEncoder);
+            DatumWriter<GenericRecord> writer = record instanceof SpecificRecord ?
+                new SpecificDatumWriter<>(record.getSchema()) :
+                new GenericDatumWriter<>(record.getSchema());
+            writer.write(record, jsonEncoder);
             jsonEncoder.flush();
             return outputStream.toByteArray();
         } catch (IOException e) {
