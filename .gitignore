@@ -21,3 +21,16 @@ sonar-project.properties
 # netbeans
 .nb-gradle
 .nb-gradle-properties
+
+.classpath
+.project
+.settings/
+.vscode/
+converter/.classpath
+converter/.project
+converter/.settings/
+converter/bin/
+validator/.classpath
+validator/.project
+validator/.settings/
+validator/bin/
