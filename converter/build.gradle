@@ -44,7 +44,7 @@ jmh {
 }
 
 dependencies {
-    compile group: 'org.apache.avro', name: 'avro', version: '1.8.2'
+    compile group: 'org.apache.avro', name: 'avro', version: '1.9.0'
 
     testCompile group: 'org.spockframework', name: 'spock-core', version: versions.spock
     testCompile group: 'org.codehaus.groovy', name: 'groovy-all', version: versions.groovy

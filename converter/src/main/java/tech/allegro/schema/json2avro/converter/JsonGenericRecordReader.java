@@ -1,16 +1,11 @@
 package tech.allegro.schema.json2avro.converter;
 
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import org.apache.avro.AvroRuntimeException;
-import org.apache.avro.AvroTypeException;
-import org.apache.avro.Schema;
-import org.apache.avro.Schema.Field;
-import org.apache.avro.generic.GenericData;
-import org.apache.avro.generic.GenericRecordBuilder;
-import org.codehaus.jackson.map.ObjectMapper;
+import static java.util.stream.Collectors.*;
+import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.*;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
@@ -18,11 +13,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
-import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.enumException;
-import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.typeException;
-import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.unionException;
+import org.apache.avro.AvroRuntimeException;
+import org.apache.avro.AvroTypeException;
+import org.apache.avro.Schema;
+import org.apache.avro.Schema.Field;
+import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.GenericRecordBuilder;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class JsonGenericRecordReader {
     private static final Object INCOMPATIBLE = new Object();

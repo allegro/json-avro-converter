@@ -1,11 +1,12 @@
 package org.apache.avro.io;
 
-import org.apache.avro.Schema;
-import org.apache.avro.io.parsing.Symbol;
-import org.codehaus.jackson.JsonGenerator;
-
 import java.io.IOException;
 import java.io.OutputStream;
+
+import org.apache.avro.Schema;
+import org.apache.avro.io.parsing.Symbol;
+
+import com.fasterxml.jackson.core.JsonGenerator;
 
 public class NoWrappingJsonEncoder extends JsonEncoder {
     public NoWrappingJsonEncoder(Schema sc, OutputStream out) throws IOException {
