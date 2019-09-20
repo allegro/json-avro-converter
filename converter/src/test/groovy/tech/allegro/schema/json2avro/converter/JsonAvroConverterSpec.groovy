@@ -5,7 +5,7 @@ import org.apache.avro.specific.SpecificRecord
 import org.apache.avro.specific.SpecificRecordBase
 import spock.lang.Specification
 
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 
 class JsonAvroConverterSpec extends Specification {
