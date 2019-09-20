@@ -26,7 +26,7 @@ having to modify JSON data if it conforms to the JSON schema.
 
 ```groovy
 dependencies {
-    compile group: 'tech.allegro.schema.json2avro', name: 'converter', version: '0.2.8'
+    compile group: 'tech.allegro.schema.json2avro', name: 'converter', version: '0.2.9'
 }
 ```
 
