@@ -5,7 +5,7 @@ plugins {
     // does not work with Java 10
     // id 'jacoco'
     id 'application'
-    id 'com.github.johnrengelman.shadow' version '4.0.0'
+    id 'com.github.johnrengelman.shadow' version '5.1.0'
 }
 
 shadowJar {
@@ -18,7 +18,7 @@ dependencies {
 
     compile group: 'com.beust', name: 'jcommander', version: '1.72'
     compile group: 'com.google.guava', name: 'guava', version: '24.0-jre'
-    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.9.2'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.10'
 
     compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
     compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
