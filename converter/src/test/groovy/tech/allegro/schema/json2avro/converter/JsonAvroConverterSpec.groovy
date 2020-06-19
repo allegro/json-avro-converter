@@ -922,6 +922,41 @@ class JsonAvroConverterSpec extends Specification {
         result != null && new String(result) == json
     }
 
+    def "should convert record with aliased field"() {
+        given:
+        def schema = '''
+            {
+              "type" : "record",
+              "name" : "testSchema",
+              "fields" : [
+                  {
+                    "name" : "field",
+                    "type" : "string",
+                    "aliases" : ["aliased_field"]
+                  }
+              ]
+            }
+        '''
+
+        def json = '''
+        {
+            "aliased_field": "blah"
+        }
+        '''
+
+        def jsonAfterParse = '''
+        {
+            "field": "blah"
+        }
+        '''
+
+        when:
+        byte[] avro = converter.convertToAvro(json.bytes, schema)
+
+        then:
+        toMap(jsonAfterParse) == toMap(converter.convertToJson(avro, schema))
+    }
+
 
     def toMap(String json) {
         slurper.parseText(json)
