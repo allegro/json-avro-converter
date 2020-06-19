@@ -848,6 +848,45 @@ class JsonAvroConverterSpec extends Specification {
         exception.cause.message  ==~ /.*enum type and be one of A, B, C.*/
     }
 
+    def 'should fallback to enum default when passing an invalid enum type'() {
+        given:
+        def schema = '''
+            {
+              "name": "testSchema",
+              "type": "record",
+              "fields": [
+                  {
+                    "name" : "field_enum",
+                    "type" : {
+                        "name" : "MyEnums",
+                        "type" : "enum",
+                        "symbols" : [ "A", "B", "C" ],
+                        "default" : "B"
+                    }
+                  }
+              ]
+            }
+        '''
+
+        def json = '''
+        {
+            "field_enum": "D"
+        }
+        '''
+
+        def jsonAfterParse = '''
+        {
+            "field_enum": "B"
+        }
+        '''
+
+        when:
+        def result = converter.convertToJson(converter.convertToAvro(json.bytes, schema), schema)
+
+        then:
+        toMap(jsonAfterParse) == toMap(result)
+    }
+
     def 'should accept null when value can be of any nullable array/map type'() {
         given:
         def schema = '''
