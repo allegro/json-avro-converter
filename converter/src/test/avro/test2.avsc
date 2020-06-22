@@ -1,0 +1,12 @@
+{"namespace": "tech.allegro.schema.json2avro.converter",
+   "type": "record",
+   "name": "SpecificRecordUUIDConvertTest",
+   "fields": [
+      {"name": "field_uuid_string",
+       "type": [
+         "null",
+         {"type": "fixed", "name": "UUID", "size": 16}
+       ]
+      }
+   ]
+}

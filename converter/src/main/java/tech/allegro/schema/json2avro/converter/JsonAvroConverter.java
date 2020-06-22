@@ -21,6 +21,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Map;
+import java.util.function.Function;
 
 public class JsonAvroConverter {
     private JsonGenericRecordReader recordReader;
@@ -35,6 +37,10 @@ public class JsonAvroConverter {
 
     public JsonAvroConverter(ObjectMapper objectMapper, UnknownFieldListener unknownFieldListener) {
         this.recordReader = new JsonGenericRecordReader(objectMapper, unknownFieldListener);
+    }
+
+    public JsonAvroConverter(ObjectMapper objectMapper, UnknownFieldListener unknownFieldListener, Map<String, Function<?, ?>> customFieldMappingFunctions) {
+        this.recordReader = new JsonGenericRecordReader(objectMapper, unknownFieldListener, customFieldMappingFunctions);
     }
 
     public byte[] convertToAvro(byte[] data, String schema) {

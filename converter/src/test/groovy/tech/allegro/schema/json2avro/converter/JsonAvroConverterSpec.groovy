@@ -1,18 +1,34 @@
 package tech.allegro.schema.json2avro.converter
 
+import java.nio.ByteBuffer
+import java.util.function.Function
+
+import static java.util.Collections.singletonMap;
 import groovy.json.JsonSlurper
-import org.apache.avro.specific.SpecificRecord
-import org.apache.avro.specific.SpecificRecordBase
 import spock.lang.Specification
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-
 class JsonAvroConverterSpec extends Specification {
-
-    def converter = new JsonAvroConverter(new ObjectMapper(), 
+    class UUIDConverter implements Function<String, UUID> {
+        @Override
+        UUID apply(String input) {
+            final java.util.UUID uuid = java.util.UUID.fromString(input)
+            final ByteBuffer buffer = ByteBuffer.allocate(16)
+            buffer.putLong(uuid.getMostSignificantBits())
+            buffer.putLong(uuid.getLeastSignificantBits())
+            new UUID(buffer.array())
+        }
+    }
+    def converter = new JsonAvroConverter(new ObjectMapper(),
         {name, value, path -> println "Unknown field $path with value $value"})
     def converterFailOnUnknown = new JsonAvroConverter(new ObjectMapper(), new FailOnUnknownField())
+    def converterCustomStringFieldMapping = new JsonAvroConverter(
+          new ObjectMapper(),
+          null,
+          singletonMap("field_uuid_string", new UUIDConverter()
+        )
+    )
     def slurper = new JsonSlurper()
 
     def "should convert record with primitives"() {
@@ -922,6 +938,28 @@ class JsonAvroConverterSpec extends Specification {
         result != null && new String(result) == json
     }
 
+    def 'should parse mapped UUID string field properly'() {
+        given:
+        def clazz = SpecificRecordUUIDConvertTest.class
+        def schema = SpecificRecordUUIDConvertTest.getClassSchema()
+
+        def uuidString = "5c7eb813-08d3-4bc5-90e3-e2b2893c77bb"
+
+        def json = """
+        {
+            "field_uuid_string": "${uuidString}"
+        }
+        """
+
+        when:
+        SpecificRecordUUIDConvertTest record = converterCustomStringFieldMapping.convertToSpecificRecord(json.bytes, clazz, schema)
+
+        then:
+        record != null &&
+        record.fieldUuidString.equals(
+                new UUIDConverter().apply(uuidString)
+        )
+    }
 
     def toMap(String json) {
         slurper.parseText(json)
