@@ -1,5 +1,6 @@
 package tech.allegro.schema.json2avro.converter;
 
+import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import org.apache.avro.AvroRuntimeException;
@@ -24,8 +25,9 @@ import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.enumExc
 import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.typeException;
 import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.unionException;
 
-public class JsonGenericRecordReader {
+public class JsonGenericRecordReader implements Serializable {
     private static final Object INCOMPATIBLE = new Object();
+    private static final long serialVersionUID = 4645457833824828111L;
     private final ObjectMapper mapper;
     private final UnknownFieldListener unknownFieldListener;
 
