@@ -63,14 +63,31 @@ public class JsonGenericRecordReader {
         }
     }
 
+    private static Map<String, Field> getFieldAliasMap(final Schema schema) {
+        final Map<String, Field> fieldAliasMap = new HashMap<>(1);
+        for (Field field: schema.getFields()) {
+            for (String alias: field.aliases()) {
+                fieldAliasMap.put(alias, field);
+            }
+        }
+        return fieldAliasMap;
+    }
+
     private GenericData.Record readRecord(Map<String, Object> json, Schema schema, Deque<String> path) {
-        GenericRecordBuilder record = new GenericRecordBuilder(schema);
+        final GenericRecordBuilder record = new GenericRecordBuilder(schema);
         json.entrySet().forEach(entry -> {
-            Field field = schema.getField(entry.getKey());
+            final String entryKey = entry.getKey();
+            final Field field = schema.getField(entryKey);
             if (field != null) {
                 record.set(field, read(field, field.schema(), entry.getValue(), path, false));
-            } else if (unknownFieldListener != null) {
-                unknownFieldListener.onUnknownField(entry.getKey(), entry.getValue(), PathsPrinter.print(path, entry.getKey()));
+            } else {
+                final Map<String, Field> fieldAliasMap = getFieldAliasMap(schema);
+                if (fieldAliasMap.containsKey(entryKey)) {
+                    final Field aliasedField = fieldAliasMap.get(entryKey);
+                    record.set(aliasedField, read(aliasedField, aliasedField.schema(), entry.getValue(), path, false));
+                } else if (unknownFieldListener != null) {
+                    unknownFieldListener.onUnknownField(entry.getKey(), entry.getValue(), PathsPrinter.print(path, entry.getKey()));
+                }
             }
         });
         return record.build();
