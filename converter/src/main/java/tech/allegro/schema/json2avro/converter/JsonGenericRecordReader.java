@@ -56,6 +56,8 @@ public class JsonGenericRecordReader {
         Deque<String> path = new ArrayDeque<>();
         try {
             return readRecord(json, schema, path);
+        } catch (AvroTypeException ex) {
+            throw new AvroConversionException("Failed to convert JSON to Avro: " + ex.getMessage(), ex);
         } catch (AvroRuntimeException ex) {
             throw new AvroConversionException("Failed to convert JSON to Avro", ex);
         }
