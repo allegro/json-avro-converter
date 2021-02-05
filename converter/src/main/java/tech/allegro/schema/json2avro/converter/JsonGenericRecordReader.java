@@ -170,6 +170,9 @@ public class JsonGenericRecordReader {
         if (symbols.contains(value)) {
             return new GenericData.EnumSymbol(schema, value);
         }
+        else if (schema.getEnumDefault() != null) {
+            return new GenericData.EnumSymbol(schema, schema.getEnumDefault());
+        }
         throw enumException(path, symbols.stream().map(String::valueOf).collect(joining(", ")));
     }
 
