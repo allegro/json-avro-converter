@@ -1,10 +1,7 @@
 package tech.allegro.schema.json2avro.converter;
 
 import org.apache.avro.Schema;
-import org.apache.avro.generic.GenericData;
-import org.apache.avro.generic.GenericDatumReader;
-import org.apache.avro.generic.GenericDatumWriter;
-import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.generic.*;
 import org.apache.avro.io.BinaryDecoder;
 import org.apache.avro.io.BinaryEncoder;
 import org.apache.avro.io.DatumWriter;
@@ -89,11 +86,11 @@ public class JsonAvroConverter {
         }
     }
 
-    public byte[] convertToJson(GenericRecord record) {
+    public byte[] convertToJson(IndexedRecord record) {
         try {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             NoWrappingJsonEncoder jsonEncoder = new NoWrappingJsonEncoder(record.getSchema(), outputStream);
-            DatumWriter<GenericRecord> writer = record instanceof SpecificRecord ?
+            DatumWriter<IndexedRecord> writer = record instanceof SpecificRecord ?
                 new SpecificDatumWriter<>(record.getSchema()) :
                 new GenericDatumWriter<>(record.getSchema());
             writer.write(record, jsonEncoder);
