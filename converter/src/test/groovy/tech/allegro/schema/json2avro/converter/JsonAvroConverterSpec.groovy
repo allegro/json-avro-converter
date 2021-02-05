@@ -910,6 +910,27 @@ class JsonAvroConverterSpec extends Specification {
         result != null && result instanceof SpecificRecordConvertTest && result.getTest() == "test"
     }
 
+    def 'should rename fields for specific record correctly'() {
+        given:
+        def json = '''
+        {
+            "testSource": "testValue",
+            "enumTest": "s1"
+        }
+        '''
+        def clazz = SpecificRecordConvertTest.class
+        def schema = SpecificRecordConvertTest.getClassSchema()
+
+        when:
+        SpecificRecordConvertTest result = new JsonAvroConverter(
+                new ObjectMapper(),
+                null,
+                ["testSource": "test"]
+        ).convertToSpecificRecord(json.bytes, clazz, schema)
+        then:
+        result != null && result instanceof SpecificRecordConvertTest && result.getTest() == "testValue"
+    }
+
     def 'should convert specific record and back to json'() {
         given:
         def json = '''{"test":"test","enumTest":"s1"}'''

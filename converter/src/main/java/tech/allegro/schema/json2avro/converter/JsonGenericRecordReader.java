@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import static java.util.Collections.emptyMap;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
@@ -28,7 +29,7 @@ public class JsonGenericRecordReader {
     private static final Object INCOMPATIBLE = new Object();
     private final ObjectMapper mapper;
     private final UnknownFieldListener unknownFieldListener;
-
+    private Map<String,String> fieldRenameMap;
 
     public JsonGenericRecordReader() {
         this(new ObjectMapper());
@@ -39,8 +40,13 @@ public class JsonGenericRecordReader {
     }
 
     public JsonGenericRecordReader(ObjectMapper mapper, UnknownFieldListener unknownFieldListener) {
+        this(mapper, unknownFieldListener, emptyMap());
+    }
+
+    public JsonGenericRecordReader(ObjectMapper mapper, UnknownFieldListener unknownFieldListener, Map<String,String> fieldRenameMap) {
         this.mapper = mapper;
         this.unknownFieldListener = unknownFieldListener;
+        this.fieldRenameMap = fieldRenameMap;
     }
 
     @SuppressWarnings("unchecked")
@@ -66,7 +72,8 @@ public class JsonGenericRecordReader {
     private GenericData.Record readRecord(Map<String, Object> json, Schema schema, Deque<String> path) {
         GenericRecordBuilder record = new GenericRecordBuilder(schema);
         json.entrySet().forEach(entry -> {
-            Field field = schema.getField(entry.getKey());
+            final String fieldName = fieldRenameMap.getOrDefault(entry.getKey(), entry.getKey());
+            Field field = schema.getField(fieldName);
             if (field != null) {
                 record.set(field, read(field, field.schema(), entry.getValue(), path, false));
             } else if (unknownFieldListener != null) {
