@@ -135,7 +135,11 @@ public class JsonGenericRecordReader {
     }
 
     private List<Object> readArray(Schema.Field field, Schema schema, List<Object> items, Deque<String> path) {
-        return items.stream().map(item -> read(field, schema.getElementType(), item, path, false)).collect(toList());
+        List<Object> array = new GenericData.Array<Object>(items.size(), schema);
+        for (Object item: items) {
+            array.add(read(field, schema.getElementType(), item, path, false));
+        }
+        return array;
     }
 
     private Map<String, Object> readMap(Schema.Field field, Schema schema, Map<String, Object> map, Deque<String> path) {
