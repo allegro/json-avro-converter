@@ -2,7 +2,7 @@
 
 [![Java CI](https://github.com/airbytehq/json-avro-converter/actions/workflows/java_ci.yaml/badge.svg)](https://github.com/airbytehq/json-avro-converter/actions/workflows/java_ci.yaml)
 
-This is a Json to Avro object converter used by Airbyte. It is written on top of [json-avro-converter](https://github.com/allegro/json-avro-converter). For basic usage, see the README in the original repo.
+This is a Json to Avro object converter used by Airbyte. It is based on [json-avro-converter](https://github.com/allegro/json-avro-converter) from [Allegro Tech](https://github.com/allegro). For basic usage, see the README in the original repo.
 
 ## Airbyte Specific Features
 

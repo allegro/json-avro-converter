@@ -6,7 +6,6 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.3'
         classpath 'com.commercehub.gradle.plugin:gradle-avro-plugin:0.14.0'
     }
 }
@@ -14,15 +13,13 @@ buildscript {
 plugins {
     id 'java'
     id 'groovy'
-    id 'maven'
     // does not work with Java 10
     // id 'jacoco'
-    id 'com.bmuschko.nexus' version '2.3.1'
-    id 'me.champeau.gradle.jmh' version '0.4.5'
+    // https://github.com/melix/jmh-gradle-plugin#what-plugin-version-to-use
+    id 'me.champeau.gradle.jmh' version '0.5.3'
 }
 
 apply plugin: 'com.commercehub.gradle.plugin.avro'
-apply plugin: 'io.codearte.nexus-staging'
 apply plugin: 'idea'
 
 configurations {
@@ -44,10 +41,10 @@ jmh {
 }
 
 dependencies {
-    compile group: 'org.apache.avro', name: 'avro', version: '1.9.0'
+    implementation group: 'org.apache.avro', name: 'avro', version: '1.9.0'
 
-    testCompile group: 'org.spockframework', name: 'spock-core', version: versions.spock
-    testCompile group: 'org.codehaus.groovy', name: 'groovy-all', version: versions.groovy
+    testImplementation group: 'org.spockframework', name: 'spock-core', version: versions.spock
+    testImplementation group: 'org.codehaus.groovy', name: 'groovy-all', version: versions.groovy
 
     jmh 'org.openjdk.jmh:jmh-core:1.20'
     jmh 'org.openjdk.jmh:jmh-generator-annprocess:1.20'
@@ -57,42 +54,6 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.1'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.1'
     testImplementation 'org.junit.jupiter:junit-jupiter-params:5.7.1'
-}
-
-modifyPom {
-    project {
-        name project.name
-        description 'JSON to Avro conversion tool designed to make migration to Avro easier'
-        url 'https://github.com/allegro/json-avro-converter'
-        inceptionYear '2016'
-
-        scm {
-            url 'https://github.com/allegro/json-avro-converter'
-            connection 'scm:git@github.com:allegro/json-avro-converter.git'
-            developerConnection 'scm:git@github.com:allegro/json-avro-converter.git'
-        }
-
-        licenses {
-            license {
-                name 'The Apache Software License, Version 2.0'
-                url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-            }
-        }
-
-        developers {
-            developer {
-                id 'skylab'
-                name 'Team Skylab'
-            }
-        }
-    }
-}
-
-nexusStaging {
-    packageGroup = "tech.allegro"
-
-    numberOfRetries = 15
-    delayBetweenRetriesInMillis = 5000
 }
 
 idea {

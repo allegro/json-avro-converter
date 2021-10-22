@@ -14,18 +14,19 @@ shadowJar {
 }
 
 dependencies {
-    compile project(':converter')
+    implementation project(':converter')
 
-    compile group: 'com.beust', name: 'jcommander', version: '1.72'
-    compile group: 'com.google.guava', name: 'guava', version: '24.0-jre'
-    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.10'
+    implementation group: 'org.apache.avro', name: 'avro', version: '1.9.0'
+    implementation group: 'com.beust', name: 'jcommander', version: '1.72'
+    implementation group: 'com.google.guava', name: 'guava', version: '24.0-jre'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.10'
 
-    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
-    compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
+    implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+    implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
 
-    testCompile group: 'org.spockframework', name: 'spock-core', version: versions.spock
-    testCompile group: 'org.codehaus.groovy', name: 'groovy-all', version: versions.groovy
-    testCompile group: 'com.jayway.awaitility', name: 'awaitility', version: '1.7.0'
+    testImplementation group: 'org.spockframework', name: 'spock-core', version: versions.spock
+    testImplementation group: 'org.codehaus.groovy', name: 'groovy-all', version: versions.groovy
+    testImplementation group: 'com.jayway.awaitility', name: 'awaitility', version: '1.7.0'
 }
 
 mainClassName = 'tech.allegro.schema.json2avro.validator.ValidatorRunner'
