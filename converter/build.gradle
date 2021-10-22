@@ -17,7 +17,6 @@ plugins {
     id 'maven-publish'
     // does not work with Java 10
     // id 'jacoco'
-    id 'com.bmuschko.nexus' version '2.3.1'
     id 'me.champeau.gradle.jmh' version '0.4.5'
 }
 
@@ -57,35 +56,6 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.1'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.1'
     testImplementation 'org.junit.jupiter:junit-jupiter-params:5.7.1'
-}
-
-modifyPom {
-    project {
-        name project.name
-        description 'JSON to Avro conversion tool designed to make migration to Avro easier'
-        url 'https://github.com/allegro/json-avro-converter'
-        inceptionYear '2016'
-
-        scm {
-            url 'https://github.com/allegro/json-avro-converter'
-            connection 'scm:git@github.com:allegro/json-avro-converter.git'
-            developerConnection 'scm:git@github.com:allegro/json-avro-converter.git'
-        }
-
-        licenses {
-            license {
-                name 'The Apache Software License, Version 2.0'
-                url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-            }
-        }
-
-        developers {
-            developer {
-                id 'skylab'
-                name 'Team Skylab'
-            }
-        }
-    }
 }
 
 nexusStaging {
