@@ -1,6 +1,6 @@
 # json-avro-converter
 
-[![Java CI](https://github.com/airbytehq/json-avro-converter/actions/workflows/gradle.yaml/badge.svg)](https://github.com/airbytehq/json-avro-converter/actions/workflows/gradle.yaml)
+[![Java CI](https://github.com/airbytehq/json-avro-converter/actions/workflows/java_ci.yaml/badge.svg)](https://github.com/airbytehq/json-avro-converter/actions/workflows/java_ci.yaml)
 
 This project is a JSON to Avro conversion tool designed to make migration to Avro easier. It includes a simple command line validator.
 
