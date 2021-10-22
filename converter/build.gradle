@@ -14,7 +14,7 @@ buildscript {
 plugins {
     id 'java'
     id 'groovy'
-    id 'maven'
+    id 'maven-publish'
     // does not work with Java 10
     // id 'jacoco'
     id 'com.bmuschko.nexus' version '2.3.1'
