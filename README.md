@@ -127,6 +127,10 @@ will be converted to the following Avro object:
 
 Note the undefined `active` field is moved into `_ab_additional_properties`. `age` and `auth` that are originally in `_ab_additional_properties` becomes strings.
 
+## Build
+- The build is upgraded to use Java 14 and Gradle 7.2 to match the build environment of Airbyte.
+- Maven staging and publishing is removed because they are incompatible with the new build environment.
+
 ## License
 
 The original [json-avro-converter](https://github.com/allegro/json-avro-converter) is published under [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0).
