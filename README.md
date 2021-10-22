@@ -2,121 +2,131 @@
 
 [![Java CI](https://github.com/airbytehq/json-avro-converter/actions/workflows/java_ci.yaml/badge.svg)](https://github.com/airbytehq/json-avro-converter/actions/workflows/java_ci.yaml)
 
-This project is a JSON to Avro conversion tool designed to make migration to Avro easier. It includes a simple command line validator.
+This is a Json to Avro object converter used by Airbyte. It is written on top of [json-avro-converter](https://github.com/allegro/json-avro-converter). For basic usage, see the README in the original repo.
 
-## Motivation
+## Airbyte Specific Features
 
-Apache Avro ships with some very advanced and efficient tools for reading and writing binary Avro but their support 
-for JSON to Avro conversion is unfortunately limited and requires wrapping fields with type declarations if you have
-some optional fields in your schema. This tool is supposed to help with migrating projects from using JSON to Avro without
-having to modify JSON data if it conforms to the JSON schema.
-
-## JSON2Avro Converter
-
-### Features
-
-* conversion of binary JSON to binary Avro
-* conversion of binary JSON to GenericData.Record
-* conversion of binary JSON to Avro generated Java classes
-* conversion of binary Avro to binary JSON
-* optional field support (unions do not require wrapping)
-* unknown fields that are not declared in schema are ignored
-
-### Dependencies
-
-```groovy
-dependencies {
-    compile group: 'tech.allegro.schema.json2avro', name: 'converter', version: '0.2.10'
-}
-```
-
-### Basic usage
+### Fluent Constructor
+The construction of `JsonAvroConverter` and `JsonGenericRecordReader` is now done with a builder.
 
 ```java
-import tech.allegro.schema.json2avro.converter.AvroConversionException;
-import tech.allegro.schema.json2avro.converter.JsonAvroConverter;
-import org.apache.avro.generic.GenericData;
-import org.apache.avro.Schema;
+JsonAvroConverter converter = JsonAvroConverter.builder()
+    .setUnknownFieldListener(listener)
+    .build();
+```
 
-// Avro schema with one string field: username
-String schema =
-            "{" +
-            "   \"type\" : \"record\"," +
-            "   \"name\" : \"Acme\"," +
-            "   \"fields\" : [{ \"name\" : \"username\", \"type\" : \"string\" }]" +
-            "}";
+### Name Transformer
+According to Avro spec, Avro names must start with `[A-Za-z_]` followed by `[A-Za-z0-9_]` (see [here](https://avro.apache.org/docs/current/spec.html#names) for details), while Json object property names can be more flexible. A name transformer can be set on `JsonAvroConverter` during the construction to convert a Json object property name to a legal Avro name.
 
-String json = "{ \"username\": \"mike\" }";
+```java
+Function<String, String> nameTransformer = String::toUpperCase;
+JsonGenericRecordReader reader = JsonGenericRecordReader.builder()
+    .setNameTransformer(nameTransformer)
+    .build();
+```
 
-JsonAvroConverter converter = new JsonAvroConverter();
+### Additional Properties
+A Json object can have additional properties of unknown types, which is not compatible with the Avro schema. So solve this problem during Json to Avro object conversion, we introduced a special field: `_ab_additional_properties` typed as a nullable `map` from string to string:
 
-// conversion to binary Avro
-byte[] avro = converter.convertToAvro(json.getBytes(), schema);
-
-// conversion to GenericData.Record
-GenericData.Record record = converter.convertToGenericDataRecord(json.getBytes(), new Schema.Parser().parse(schema));
-
-// conversion from binary Avro to JSON
-byte[] binaryJson = converter.convertToJson(avro, schema);
-
-// exception handling
-String invalidJson = "{ \"username\": 8 }";    
-
-try {
-    converter.convertToAvro(invalidJson.getBytes(), schema);    
-} catch (AvroConversionException ex) {
-    System.err.println("Caught exception: " + ex.getMessage());
+```json
+{
+  "name": "_ab_additional_properties",
+  "type": ["null", { "type": "map", "values": "string" }],
+  "default": null
 }
 ```
 
-## Validator
+When this field exists in the Avro schema for a record, any unknown fields will be serialized as a string be stored under this field.
 
-A command line tool for validating your JSON/Avro documents against a schema.
+Given the following Avro schema:
 
-### Build
-
-To bundle the tool into single executable JAR:
-
-```bash
-./gradlew :validator:shadowJar
-java -jar validator/build/libs/json2avro-validator-{version}.jar --help
+```json
+{
+  "type": "record",
+  "name": "simple_schema",
+  "fields": [
+    {
+      "name": "username",
+      "type": ["null", "string"],
+      "default": null
+    },
+    {
+      "name": "_ab_additional_properties",
+      "type": ["null", { "type": "map", "values": "string" }],
+      "default": null
+    }
+  ]
+}
 ```
 
-### Usage
+this Json object
 
-Running Validator with `--help` option will print a help message listing all possible arguments.
-Sample Avro schema and messages can be found in:
-
-* schema: `validator/src/test/resources/user.avcs`
-* JSON message: `validator/src/test/resources/user.json`
-* Avro message: `validator/src/test/resources/user.avro`
-
-#### JSON to Avro
-
-You can validate your JSON to Avro conversion:
- 
-```bash
-java -jar json2avro-validator.jar -s user.avcs -i user.json
+```json
+{
+  "username": "Thomas",
+  "active": true,
+  "age": 21,
+  "auth": {
+    "auth_type": "ssl",
+    "api_key": "abcdefg/012345",
+    "admin": false,
+    "id": 1000
+  }
+}
 ```
 
-If everything processes correctly, the process will end with zero status code.
- 
-#### Avro to JSON
- 
-You can convert the Avro binary data into JSON by setting mode ``-m avro2json`` option:
- 
-```bash
-java -jar json2avro-validator.jar -s user.avcs -i user.avro -m avro2json
+will be converted to the following Avro object:
+
+```json
+{
+  "username": "Thomas",
+  "_ab_additional_properties": {
+    "active": "true",
+    "age": "21",
+    "auth": "{\"auth_type\":\"ssl\",\"api_key\":\"abcdefg/012345\",\"admin\":false,\"id\":1000}"
+  }
+}
 ```
 
-#### JSON to Avro to JSON
+Note that all fields other than the `username` is moved under `_ab_additional_properties` as a string.
 
-If you would like to know how messages will look like after encoding and decoding invoke:
+If the Json object already has an `_ab_additional_properties` field, it will follow the same rule:
+- If the Avro schema defines an `_ab_additional_properties` field, all subfields inside this field will be kept in the Avro object, but they will all become string. Other unknown fields will also be stored under this field.
+- If the Avro schema does not define such field, it will be completely ignored.
 
-```bash
-java -jar json2avro-validator.jar -s user.avcs -i user.json -m json2avro2json
+For example, with the same Avro schema, given this Json object:
+
+```json
+{
+  "username": "Thomas",
+  "active": true,
+  "_ab_additional_properties": {
+    "age": 21,
+    "auth": {
+      "auth_type": "ssl",
+      "api_key": "abcdefg/012345",
+      "admin": false,
+      "id": 1000
+    }
+  }
+}
 ```
+
+will be converted to the following Avro object:
+
+```json
+{
+  "username": "Thomas",
+  "_ab_additional_properties": {
+    "age": "21",
+    "active": "true",
+    "auth": "{\"auth_type\":\"ssl\",\"api_key\":\"abcdefg/012345\",\"admin\":false,\"id\":1000}"
+  }
+}
+```
+
+Note the undefined `active` field is moved into `_ab_additional_properties`. `age` and `auth` that are originally in `_ab_additional_properties` becomes strings.
 
 ## License
 
-**json-avro-converter** is published under [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0).
+The original [json-avro-converter](https://github.com/allegro/json-avro-converter) is published under [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0).
