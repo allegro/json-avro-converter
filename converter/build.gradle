@@ -109,7 +109,7 @@ tasks.getByName('jmhJar').doFirst() {duplicatesStrategy(DuplicatesStrategy.EXCLU
 test {
     useJUnitPlatform()
     testLogging() {
-        events 'failed'
+        events "passed", "skipped", "failed"
         exceptionFormat 'full'
     }
 }
