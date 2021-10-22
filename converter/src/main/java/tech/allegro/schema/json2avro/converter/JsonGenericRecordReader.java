@@ -1,46 +1,75 @@
 package tech.allegro.schema.json2avro.converter;
 
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import org.apache.avro.AvroRuntimeException;
-import org.apache.avro.AvroTypeException;
-import org.apache.avro.Schema;
-import org.apache.avro.Schema.Field;
-import org.apache.avro.generic.GenericData;
-import org.apache.avro.generic.GenericRecordBuilder;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.io.IOException;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.enumException;
 import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.typeException;
 import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.unionException;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import org.apache.avro.AvroRuntimeException;
+import org.apache.avro.AvroTypeException;
+import org.apache.avro.Schema;
+import org.apache.avro.Schema.Field;
+import org.apache.avro.Schema.Type;
+import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.GenericRecordBuilder;
+
 public class JsonGenericRecordReader {
     private static final Object INCOMPATIBLE = new Object();
     private final ObjectMapper mapper;
     private final UnknownFieldListener unknownFieldListener;
+    private final Function<String, String> nameTransformer;
 
+    public static final class Builder {
+        private ObjectMapper mapper = new ObjectMapper();
+        private UnknownFieldListener unknownFieldListener;
+        private Function<String, String> nameTransformer = Function.identity();
 
-    public JsonGenericRecordReader() {
-        this(new ObjectMapper());
+        private Builder() {
+        }
+
+        public Builder setObjectMapper(ObjectMapper mapper) {
+            this.mapper = mapper;
+            return this;
+        }
+
+        public Builder setUnknownFieldListener(UnknownFieldListener unknownFieldListener) {
+            this.unknownFieldListener = unknownFieldListener;
+            return this;
+        }
+
+        public Builder setNameTransformer(Function<String, String> nameTransformer) {
+            this.nameTransformer = nameTransformer;
+            return this;
+        }
+
+        public JsonGenericRecordReader build() {
+            return new JsonGenericRecordReader(mapper, unknownFieldListener, nameTransformer);
+        }
     }
 
-    public JsonGenericRecordReader(ObjectMapper mapper) {
-        this(mapper, null);
+    public static Builder builder() {
+        return new Builder();
     }
 
-    public JsonGenericRecordReader(ObjectMapper mapper, UnknownFieldListener unknownFieldListener) {
+    private JsonGenericRecordReader(ObjectMapper mapper,
+                                    UnknownFieldListener unknownFieldListener,
+                                    Function<String, String> nameTransformer) {
         this.mapper = mapper;
         this.unknownFieldListener = unknownFieldListener;
+        this.nameTransformer = nameTransformer;
     }
 
     @SuppressWarnings("unchecked")
@@ -65,22 +94,36 @@ public class JsonGenericRecordReader {
 
     private GenericData.Record readRecord(Map<String, Object> json, Schema schema, Deque<String> path) {
         GenericRecordBuilder record = new GenericRecordBuilder(schema);
+        Map<String, String> additionalProperties = new HashMap<>();
+        boolean allowAdditionalProperties = schema.getField(AdditionalPropertyField.FIELD_NAME) != null;
         json.entrySet().forEach(entry -> {
-            Field field = schema.getField(entry.getKey());
+            String fieldName = nameTransformer.apply(entry.getKey());
+            Field field = schema.getField(fieldName);
             if (field != null) {
-                record.set(field, read(field, field.schema(), entry.getValue(), path, false));
+                if (fieldName.equals(AdditionalPropertyField.FIELD_NAME)) {
+                    additionalProperties.putAll(AdditionalPropertyField.getMapValue(entry.getValue()));
+                } else {
+                    record.set(fieldName, read(field, field.schema(), entry.getValue(), path, false));
+                }
+            } else if (allowAdditionalProperties) {
+                additionalProperties.put(fieldName, AdditionalPropertyField.getValue(entry.getValue()));
             } else if (unknownFieldListener != null) {
                 unknownFieldListener.onUnknownField(entry.getKey(), entry.getValue(), PathsPrinter.print(path, entry.getKey()));
             }
         });
+        if (allowAdditionalProperties && additionalProperties.size() > 0) {
+            record.set(AdditionalPropertyField.FIELD_NAME,
+                read(AdditionalPropertyField.FIELD, AdditionalPropertyField.FIELD_SCHEMA, additionalProperties, path, false));
+        }
         return record.build();
     }
 
     @SuppressWarnings("unchecked")
     private Object read(Schema.Field field, Schema schema, Object value, Deque<String> path, boolean silently) {
-        boolean pushed = !field.name().equals(path.peekLast());
+        String fieldName = nameTransformer.apply(field.name());
+        boolean pushed = !fieldName.equals(path.peekLast());
         if (pushed) {
-            path.addLast(field.name());
+            path.addLast(fieldName);
         }
         Object result;
 

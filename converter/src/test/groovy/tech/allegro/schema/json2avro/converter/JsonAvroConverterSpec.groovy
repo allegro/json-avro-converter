@@ -1,18 +1,17 @@
 package tech.allegro.schema.json2avro.converter
 
 import groovy.json.JsonSlurper
-import org.apache.avro.specific.SpecificRecord
-import org.apache.avro.specific.SpecificRecordBase
 import spock.lang.Specification
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 
 class JsonAvroConverterSpec extends Specification {
 
-    def converter = new JsonAvroConverter(new ObjectMapper(), 
-        {name, value, path -> println "Unknown field $path with value $value"})
-    def converterFailOnUnknown = new JsonAvroConverter(new ObjectMapper(), new FailOnUnknownField())
+    def converter = new JsonAvroConverter(JsonGenericRecordReader.builder()
+        .setUnknownFieldListener({name, value, path -> println "Unknown field $path with value $value"})
+        .build())
+    def converterFailOnUnknown = new JsonAvroConverter(JsonGenericRecordReader.builder()
+        .setUnknownFieldListener(new FailOnUnknownField())
+        .build())
     def slurper = new JsonSlurper()
 
     def "should convert record with primitives"() {

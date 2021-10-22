@@ -1,5 +1,10 @@
 package tech.allegro.schema.json2avro.converter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.function.Function;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericDatumReader;
@@ -16,25 +21,46 @@ import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.avro.specific.SpecificDatumWriter;
 import org.apache.avro.specific.SpecificRecord;
 import org.apache.avro.specific.SpecificRecordBase;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 
 public class JsonAvroConverter {
-    private JsonGenericRecordReader recordReader;
+    private final JsonGenericRecordReader recordReader;
+
+    public static class Builder {
+        private final JsonGenericRecordReader.Builder recordReaderBuilder = JsonGenericRecordReader.builder();
+
+        private Builder() {
+        }
+
+        public Builder setObjectMapper(ObjectMapper mapper) {
+            recordReaderBuilder.setObjectMapper(mapper);
+            return this;
+        }
+
+        public Builder setUnknownFieldListener(UnknownFieldListener unknownFieldListener) {
+            recordReaderBuilder.setUnknownFieldListener(unknownFieldListener);
+            return this;
+        }
+
+        public Builder setNameTransformer(Function<String, String> nameTransformer) {
+            recordReaderBuilder.setNameTransformer(nameTransformer);
+            return this;
+        }
+
+        public JsonAvroConverter build() {
+            return new JsonAvroConverter(recordReaderBuilder.build());
+        }
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
 
     public JsonAvroConverter() {
-        this.recordReader = new JsonGenericRecordReader();
+        this.recordReader = JsonGenericRecordReader.builder().build();
     }
 
-    public JsonAvroConverter(ObjectMapper objectMapper) {
-        this.recordReader = new JsonGenericRecordReader(objectMapper);
-    }
-
-    public JsonAvroConverter(ObjectMapper objectMapper, UnknownFieldListener unknownFieldListener) {
-        this.recordReader = new JsonGenericRecordReader(objectMapper, unknownFieldListener);
+    public JsonAvroConverter(JsonGenericRecordReader recordReader) {
+        this.recordReader = recordReader;
     }
 
     public byte[] convertToAvro(byte[] data, String schema) {

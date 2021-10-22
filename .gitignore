@@ -34,3 +34,5 @@ validator/.classpath
 validator/.project
 validator/.settings/
 validator/bin/
+
+lib/
