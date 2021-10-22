@@ -3,7 +3,7 @@
     "testCase": "simple_schema",
     "avroSchema": {
       "type": "record",
-      "name": "simple_schema",
+      "name": "test_schema",
       "fields": [
         {
           "name": "username",
@@ -32,52 +32,43 @@
       ]
     },
     "jsonObject": {
-      "username": "Thomas",
+      "username": "airbyte_developer",
       "active": true,
-      "age": 21
+      "age": 150
     },
     "avroObject": {
-      "username": "Thomas",
+      "username": "airbyte_developer",
       "active": true,
-      "age": 21
+      "age": 150
     }
   },
   {
     "testCase": "not_expecting_extra_fields",
     "avroSchema": {
       "type": "record",
-      "name": "simple_schema",
+      "name": "test_schema",
       "fields": [
         {
           "name": "username",
-          "type": [
-            "null",
-            "string"
-          ],
+          "type": ["null", "string"],
           "default": null
         },
         {
           "name": "active",
-          "type": [
-            "null",
-            "boolean"
-          ],
+          "type": ["null", "boolean"],
           "default": null
         },
         {
           "name": "age",
-          "type": [
-            "null",
-            "int"
-          ],
+          "type": ["null", "int"],
           "default": null
         }
       ]
     },
     "jsonObject": {
-      "username": "Thomas",
+      "username": "airbyte_developer",
       "active": true,
-      "age": 21,
+      "age": 150,
       "domain": "airbyte.io",
       "auth": {
         "auth_type": "ssl",
@@ -87,16 +78,16 @@
       }
     },
     "avroObject": {
-      "username": "Thomas",
+      "username": "airbyte_developer",
       "active": true,
-      "age": 21
+      "age": 150
     }
   },
   {
     "testCase": "expect_extra_fields",
     "avroSchema": {
       "type": "record",
-      "name": "simple_schema",
+      "name": "test_schema",
       "fields": [
         {
           "name": "username",
@@ -136,9 +127,9 @@
       ]
     },
     "jsonObject": {
-      "username": "Thomas",
+      "username": "airbyte_developer",
       "active": true,
-      "age": 21,
+      "age": 150,
       "domain": "airbyte.io",
       "auth": {
         "auth_type": "ssl",
@@ -148,9 +139,9 @@
       }
     },
     "avroObject": {
-      "username": "Thomas",
+      "username": "airbyte_developer",
       "active": true,
-      "age": 21,
+      "age": 150,
       "_ab_additional_properties": {
         "domain": "airbyte.io",
         "auth": "{\"auth_type\":\"ssl\",\"api_key\":\"abcdefg/012345\",\"admin\":false,\"id\":1000}"
@@ -161,7 +152,7 @@
     "testCase": "not_expecting_extra_fields_with_additional_properties",
     "avroSchema": {
       "type": "record",
-      "name": "simple_schema",
+      "name": "test_schema",
       "fields": [
         {
           "name": "username",
@@ -190,9 +181,9 @@
       ]
     },
     "jsonObject": {
-      "username": "Thomas",
+      "username": "airbyte_developer",
       "active": true,
-      "age": 21,
+      "age": 150,
       "_ab_additional_properties": {
         "domain": "airbyte.io",
         "auth": {
@@ -204,16 +195,16 @@
       }
     },
     "avroObject": {
-      "username": "Thomas",
+      "username": "airbyte_developer",
       "active": true,
-      "age": 21
+      "age": 150
     }
   },
   {
     "testCase": "expect_extra_fields_with_additional_properties",
     "avroSchema": {
       "type": "record",
-      "name": "simple_schema",
+      "name": "test_schema",
       "fields": [
         {
           "name": "username",
@@ -228,14 +219,6 @@
           "type": [
             "null",
             "boolean"
-          ],
-          "default": null
-        },
-        {
-          "name": "age",
-          "type": [
-            "null",
-            "int"
           ],
           "default": null
         },
@@ -253,11 +236,11 @@
       ]
     },
     "jsonObject": {
-      "username": "Thomas",
+      "username": "airbyte_developer",
       "active": true,
-      "age": 21,
+      "domain": "airbyte.io",
       "_ab_additional_properties": {
-        "domain": "airbyte.io",
+        "age": 150,
         "auth": {
           "auth_type": "ssl",
           "api_key": "abcdefg/012345",
@@ -267,10 +250,10 @@
       }
     },
     "avroObject": {
-      "username": "Thomas",
+      "username": "airbyte_developer",
       "active": true,
-      "age": 21,
       "_ab_additional_properties": {
+        "age": "150",
         "domain": "airbyte.io",
         "auth": "{\"auth_type\":\"ssl\",\"api_key\":\"abcdefg/012345\",\"admin\":false,\"id\":1000}"
       }
@@ -280,7 +263,7 @@
     "testCase": "transform_name",
     "avroSchema": {
       "type": "record",
-      "name": "simple_schema",
+      "name": "test_schema",
       "fields": [
         {
           "name": "USERNAME",
@@ -347,24 +330,24 @@
     },
     "name_transformer": true,
     "jsonObject": {
-      "username": "Thomas",
+      "username": "airbyte_developer",
       "auth": {
         "auth_type": "ssl",
         "api_key": "abcdefg/012345",
         "admin": false,
         "id": 1000
       },
-      "age": 21
+      "age": 150
     },
     "avroObject": {
-      "USERNAME": "Thomas",
+      "USERNAME": "airbyte_developer",
       "AUTH": {
         "AUTH_TYPE": "ssl",
         "API_KEY": "abcdefg/012345",
         "ADMIN": false,
         "ID": 1000
       },
-      "AGE": 21
+      "AGE": 150
     }
   }
 ]
