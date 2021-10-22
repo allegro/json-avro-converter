@@ -26,7 +26,7 @@ subprojects {
 
     project.ext.versions = [
         spock: '1.3-groovy-2.5',
-        groovy: '2.5.8'
+        groovy: '2.5.10'
     ]
 
     repositories {
