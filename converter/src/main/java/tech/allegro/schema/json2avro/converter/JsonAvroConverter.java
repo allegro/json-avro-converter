@@ -46,6 +46,11 @@ public class JsonAvroConverter {
             return this;
         }
 
+        public Builder setAdditionalPropertiesFieldName(String additionalPropertiesFieldName) {
+            recordReaderBuilder.setAdditionalPropertiesFieldName(additionalPropertiesFieldName);
+            return this;
+        }
+
         public JsonAvroConverter build() {
             return new JsonAvroConverter(recordReaderBuilder.build());
         }

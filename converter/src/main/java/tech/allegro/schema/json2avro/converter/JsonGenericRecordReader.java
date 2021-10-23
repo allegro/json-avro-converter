@@ -2,11 +2,11 @@ package tech.allegro.schema.json2avro.converter;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static tech.allegro.schema.json2avro.converter.AdditionalPropertyField.DEFAULT_FIELD_NAME;
 import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.enumException;
 import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.typeException;
 import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.unionException;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -16,26 +16,29 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.AvroTypeException;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
-import org.apache.avro.Schema.Type;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecordBuilder;
 
 public class JsonGenericRecordReader {
+
     private static final Object INCOMPATIBLE = new Object();
+
     private final ObjectMapper mapper;
     private final UnknownFieldListener unknownFieldListener;
     private final Function<String, String> nameTransformer;
+    private final String extraPropsFieldName;
+    private final Field extraPropsField;
 
     public static final class Builder {
         private ObjectMapper mapper = new ObjectMapper();
         private UnknownFieldListener unknownFieldListener;
         private Function<String, String> nameTransformer = Function.identity();
+        private String extraPropsFieldName = DEFAULT_FIELD_NAME;
 
         private Builder() {
         }
@@ -55,8 +58,13 @@ public class JsonGenericRecordReader {
             return this;
         }
 
+        public Builder setAdditionalPropertiesFieldName(String additionalPropertiesFieldName) {
+            this.extraPropsFieldName = additionalPropertiesFieldName;
+            return this;
+        }
+
         public JsonGenericRecordReader build() {
-            return new JsonGenericRecordReader(mapper, unknownFieldListener, nameTransformer);
+            return new JsonGenericRecordReader(mapper, unknownFieldListener, nameTransformer, extraPropsFieldName);
         }
     }
 
@@ -66,10 +74,13 @@ public class JsonGenericRecordReader {
 
     private JsonGenericRecordReader(ObjectMapper mapper,
                                     UnknownFieldListener unknownFieldListener,
-                                    Function<String, String> nameTransformer) {
+                                    Function<String, String> nameTransformer,
+                                    String additionalPropertiesFieldName) {
         this.mapper = mapper;
         this.unknownFieldListener = unknownFieldListener;
         this.nameTransformer = nameTransformer;
+        this.extraPropsFieldName = additionalPropertiesFieldName;
+        this.extraPropsField = new Field(extraPropsFieldName, AdditionalPropertyField.FIELD_SCHEMA, null, null);
     }
 
     @SuppressWarnings("unchecked")
@@ -95,12 +106,12 @@ public class JsonGenericRecordReader {
     private GenericData.Record readRecord(Map<String, Object> json, Schema schema, Deque<String> path) {
         GenericRecordBuilder record = new GenericRecordBuilder(schema);
         Map<String, String> additionalProperties = new HashMap<>();
-        boolean allowAdditionalProperties = schema.getField(AdditionalPropertyField.FIELD_NAME) != null;
+        boolean allowAdditionalProperties = schema.getField(extraPropsFieldName) != null;
         json.entrySet().forEach(entry -> {
             String fieldName = nameTransformer.apply(entry.getKey());
             Field field = schema.getField(fieldName);
             if (field != null) {
-                if (fieldName.equals(AdditionalPropertyField.FIELD_NAME)) {
+                if (fieldName.equals(extraPropsFieldName)) {
                     additionalProperties.putAll(AdditionalPropertyField.getMapValue(entry.getValue()));
                 } else {
                     record.set(fieldName, read(field, field.schema(), entry.getValue(), path, false));
@@ -112,8 +123,9 @@ public class JsonGenericRecordReader {
             }
         });
         if (allowAdditionalProperties && additionalProperties.size() > 0) {
-            record.set(AdditionalPropertyField.FIELD_NAME,
-                read(AdditionalPropertyField.FIELD, AdditionalPropertyField.FIELD_SCHEMA, additionalProperties, path, false));
+            record.set(
+                extraPropsFieldName,
+                read(extraPropsField, AdditionalPropertyField.FIELD_SCHEMA, additionalProperties, path, false));
         }
         return record.build();
     }

@@ -5,16 +5,14 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import org.apache.avro.Schema;
-import org.apache.avro.Schema.Field;
 import org.apache.avro.Schema.Type;
 
 public class AdditionalPropertyField {
 
-  public static final String FIELD_NAME = "_ab_additional_properties";
+  public static final String DEFAULT_FIELD_NAME = "_ab_additional_properties";
   public static final Schema FIELD_SCHEMA = Schema.createUnion(
       Schema.create(Schema.Type.NULL),
       Schema.createMap(Schema.create(Type.STRING)));
-  public static final Field FIELD = new Field(FIELD_NAME, FIELD_SCHEMA, null, null);
 
   @SuppressWarnings("unchecked")
   public static Map<String, String> getMapValue(Object genericValue) {

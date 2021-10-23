@@ -26,7 +26,7 @@ JsonGenericRecordReader reader = JsonGenericRecordReader.builder()
 ```
 
 ### Additional Properties
-A Json object can have additional properties of unknown types, which is not compatible with the Avro schema. So solve this problem during Json to Avro object conversion, we introduced a special field: `_ab_additional_properties` typed as a nullable `map` from string to string:
+A Json object can have additional properties of unknown types, which is not compatible with the Avro schema. To solve this problem during Json to Avro object conversion, we introduce a special field: `_ab_additional_properties` typed as a nullable `map` from `string` to `string`:
 
 ```json
 {
@@ -34,6 +34,14 @@ A Json object can have additional properties of unknown types, which is not comp
   "type": ["null", { "type": "map", "values": "string" }],
   "default": null
 }
+```
+
+The name of this field is customizable:
+
+```java
+JsonAvroConverter converter = JsonAvroConverter.builder()
+    .setAdditionalPropertiesFieldName("_additional_properties")
+    .build();
 ```
 
 When this field exists in the Avro schema for a record, any unknown fields will be serialized as a string be stored under this field.
