@@ -111,7 +111,7 @@ public class JsonGenericRecordReader {
             String fieldName = nameTransformer.apply(entry.getKey());
             Field field = schema.getField(fieldName);
             if (field != null) {
-                if (fieldName.equals(extraPropsFieldName)) {
+                if (fieldName.equals(extraPropsFieldName) & entry.getValue() != null) {
                     additionalProperties.putAll(AdditionalPropertyField.getMapValue(entry.getValue()));
                 } else {
                     record.set(fieldName, read(field, field.schema(), entry.getValue(), path, false));

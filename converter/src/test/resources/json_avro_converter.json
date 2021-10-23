@@ -349,5 +349,77 @@
       },
       "AGE": 150
     }
+  },
+  {
+    "testCase": "null_additional_properties",
+    "avroSchema": {
+      "type": "record",
+      "name": "test_schema",
+      "fields": [
+        {
+          "name": "username",
+          "type": [
+            "null",
+            "string"
+          ],
+          "default": null
+        },
+        {
+          "name": "_ab_additional_properties",
+          "type": [
+            "null",
+            {
+              "type": "map",
+              "values": "string"
+            }
+          ],
+          "default": null
+        }
+      ]
+    },
+    "jsonObject": {
+      "username": "airbyte_developer",
+      "_ab_additional_properties": null
+    },
+    "avroObject": {
+      "username": "airbyte_developer",
+      "_ab_additional_properties": null
+    }
+  },
+  {
+    "testCase": "empty_additional_properties",
+    "avroSchema": {
+      "type": "record",
+      "name": "test_schema",
+      "fields": [
+        {
+          "name": "username",
+          "type": [
+            "null",
+            "string"
+          ],
+          "default": null
+        },
+        {
+          "name": "_ab_additional_properties",
+          "type": [
+            "null",
+            {
+              "type": "map",
+              "values": "string"
+            }
+          ],
+          "default": null
+        }
+      ]
+    },
+    "jsonObject": {
+      "username": "airbyte_developer",
+      "_ab_additional_properties": {}
+    },
+    "avroObject": {
+      "username": "airbyte_developer",
+      "_ab_additional_properties": null
+    }
   }
 ]
