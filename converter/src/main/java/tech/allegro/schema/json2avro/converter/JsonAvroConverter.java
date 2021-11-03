@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Set;
 import java.util.function.Function;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
@@ -46,8 +47,13 @@ public class JsonAvroConverter {
             return this;
         }
 
-        public Builder setAdditionalPropertiesFieldName(String additionalPropertiesFieldName) {
-            recordReaderBuilder.setAdditionalPropertiesFieldName(additionalPropertiesFieldName);
+        public Builder setJsonAdditionalPropsFieldNames(Set<String> jsonAdditionalPropsFieldNames) {
+            recordReaderBuilder.setJsonAdditionalPropsFieldNames(jsonAdditionalPropsFieldNames);
+            return this;
+        }
+
+        public Builder setAvroAdditionalPropsFieldName(String avroAdditionalPropsFieldName) {
+            recordReaderBuilder.setAvroAdditionalPropsFieldName(avroAdditionalPropsFieldName);
             return this;
         }
 

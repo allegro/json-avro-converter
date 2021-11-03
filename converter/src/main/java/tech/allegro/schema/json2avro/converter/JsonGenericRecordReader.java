@@ -2,7 +2,8 @@ package tech.allegro.schema.json2avro.converter;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
-import static tech.allegro.schema.json2avro.converter.AdditionalPropertyField.DEFAULT_FIELD_NAME;
+import static tech.allegro.schema.json2avro.converter.AdditionalPropertyField.DEFAULT_AVRO_FIELD_NAME;
+import static tech.allegro.schema.json2avro.converter.AdditionalPropertyField.DEFAULT_JSON_FIELD_NAMES;
 import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.enumException;
 import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.typeException;
 import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.unionException;
@@ -16,6 +17,7 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.AvroTypeException;
@@ -31,14 +33,19 @@ public class JsonGenericRecordReader {
     private final ObjectMapper mapper;
     private final UnknownFieldListener unknownFieldListener;
     private final Function<String, String> nameTransformer;
-    private final String extraPropsFieldName;
-    private final Field extraPropsField;
+    // fields from the input json object that carry additional properties;
+    // properties inside these fields will be added to the output extra props field
+    private final Set<String> jsonExtraPropsFieldNames;
+    // field in the output avro record that carries additional properties
+    private final String avroExtraPropsFieldName;
+    private final Field avroExtraPropsField;
 
     public static final class Builder {
         private ObjectMapper mapper = new ObjectMapper();
         private UnknownFieldListener unknownFieldListener;
         private Function<String, String> nameTransformer = Function.identity();
-        private String extraPropsFieldName = DEFAULT_FIELD_NAME;
+        private Set<String> jsonExtraPropsFields = DEFAULT_JSON_FIELD_NAMES;
+        private String avroExtraPropsField = DEFAULT_AVRO_FIELD_NAME;
 
         private Builder() {
         }
@@ -58,13 +65,18 @@ public class JsonGenericRecordReader {
             return this;
         }
 
-        public Builder setAdditionalPropertiesFieldName(String additionalPropertiesFieldName) {
-            this.extraPropsFieldName = additionalPropertiesFieldName;
+        public Builder setJsonAdditionalPropsFieldNames(Set<String> jsonAdditionalPropsFieldNames) {
+            this.jsonExtraPropsFields = jsonAdditionalPropsFieldNames;
+            return this;
+        }
+
+        public Builder setAvroAdditionalPropsFieldName(String avroAdditionalPropsFieldName) {
+            this.avroExtraPropsField = avroAdditionalPropsFieldName;
             return this;
         }
 
         public JsonGenericRecordReader build() {
-            return new JsonGenericRecordReader(mapper, unknownFieldListener, nameTransformer, extraPropsFieldName);
+            return new JsonGenericRecordReader(mapper, unknownFieldListener, nameTransformer, jsonExtraPropsFields, avroExtraPropsField);
         }
     }
 
@@ -72,15 +84,26 @@ public class JsonGenericRecordReader {
         return new Builder();
     }
 
+    /**
+     * @param nameTransformer          A function that transforms the field name.
+     * @param jsonExtraPropsFieldNames A set of field names in the input Json object that are considered additional properties.
+     *                                 All these fields will be stored in the additional properties field in the output Avro object.
+     *                                 Default to ["_aibyte_additional_properties", "_ab_additional_properties"].
+     * @param avroExtraPropsFieldName  Name of the field to store all the additional properties from the input Json object
+     *                                 whose schema is not specified.
+     *                                 Default to _aibyte_additional_properties.
+     */
     private JsonGenericRecordReader(ObjectMapper mapper,
                                     UnknownFieldListener unknownFieldListener,
                                     Function<String, String> nameTransformer,
-                                    String additionalPropertiesFieldName) {
+                                    Set<String> jsonExtraPropsFieldNames,
+                                    String avroExtraPropsFieldName) {
         this.mapper = mapper;
         this.unknownFieldListener = unknownFieldListener;
         this.nameTransformer = nameTransformer;
-        this.extraPropsFieldName = additionalPropertiesFieldName;
-        this.extraPropsField = new Field(extraPropsFieldName, AdditionalPropertyField.FIELD_SCHEMA, null, null);
+        this.jsonExtraPropsFieldNames = jsonExtraPropsFieldNames;
+        this.avroExtraPropsFieldName = avroExtraPropsFieldName;
+        this.avroExtraPropsField = new Field(avroExtraPropsFieldName, AdditionalPropertyField.FIELD_SCHEMA, null, null);
     }
 
     @SuppressWarnings("unchecked")
@@ -103,30 +126,37 @@ public class JsonGenericRecordReader {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private GenericData.Record readRecord(Map<String, Object> json, Schema schema, Deque<String> path) {
         GenericRecordBuilder record = new GenericRecordBuilder(schema);
-        Map<String, String> additionalProperties = new HashMap<>();
-        boolean allowAdditionalProperties = schema.getField(extraPropsFieldName) != null;
-        json.entrySet().forEach(entry -> {
-            String fieldName = nameTransformer.apply(entry.getKey());
+        Map<String, String> additionalProps = new HashMap<>();
+        boolean allowAdditionalProps = schema.getField(avroExtraPropsFieldName) != null;
+
+        json.forEach((key, value) -> {
+            if (value == null) {
+                return;
+            }
+
+            String fieldName = nameTransformer.apply(key);
             Field field = schema.getField(fieldName);
-            if (field != null) {
-                if (fieldName.equals(extraPropsFieldName) & entry.getValue() != null) {
-                    additionalProperties.putAll(AdditionalPropertyField.getMapValue(entry.getValue()));
-                } else {
-                    record.set(fieldName, read(field, field.schema(), entry.getValue(), path, false));
-                }
-            } else if (allowAdditionalProperties) {
-                additionalProperties.put(fieldName, AdditionalPropertyField.getValue(entry.getValue()));
+
+            if (jsonExtraPropsFieldNames.contains(fieldName)) {
+                additionalProps.putAll(AdditionalPropertyField.getObjectValues((Map<String, Object>) value));
+            } else if (field != null) {
+                record.set(fieldName, read(field, field.schema(), value, path, false));
+            } else if (allowAdditionalProps) {
+                additionalProps.put(fieldName, AdditionalPropertyField.getValue(value));
             } else if (unknownFieldListener != null) {
-                unknownFieldListener.onUnknownField(entry.getKey(), entry.getValue(), PathsPrinter.print(path, entry.getKey()));
+                unknownFieldListener.onUnknownField(key, value, PathsPrinter.print(path, key));
             }
         });
-        if (allowAdditionalProperties && additionalProperties.size() > 0) {
+
+        if (allowAdditionalProps && additionalProps.size() > 0) {
             record.set(
-                extraPropsFieldName,
-                read(extraPropsField, AdditionalPropertyField.FIELD_SCHEMA, additionalProperties, path, false));
+                avroExtraPropsFieldName,
+                read(avroExtraPropsField, AdditionalPropertyField.FIELD_SCHEMA, additionalProps, path, false));
         }
+
         return record.build();
     }
 

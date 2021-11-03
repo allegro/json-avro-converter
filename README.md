@@ -26,11 +26,13 @@ JsonGenericRecordReader reader = JsonGenericRecordReader.builder()
 ```
 
 ### Additional Properties
-A Json object can have additional properties of unknown types, which is not compatible with the Avro schema. To solve this problem during Json to Avro object conversion, we introduce a special field: `_ab_additional_properties` typed as a nullable `map` from `string` to `string`:
+
+#### Avro Additional Properties
+A Json object can have additional properties of unknown types, which is not compatible with the Avro schema. To solve this problem during Json to Avro object conversion, we introduce a special field: `_airbyte_additional_properties` typed as a nullable `map` from `string` to `string`:
 
 ```json
 {
-  "name": "_ab_additional_properties",
+  "name": "_airbyte_additional_properties",
   "type": ["null", { "type": "map", "values": "string" }],
   "default": null
 }
@@ -40,7 +42,7 @@ The name of this field is customizable:
 
 ```java
 JsonAvroConverter converter = JsonAvroConverter.builder()
-    .setAdditionalPropertiesFieldName("_additional_properties")
+    .setAvroAdditionalPropsFieldName("_additional_properties")
     .build();
 ```
 
@@ -59,7 +61,7 @@ Given the following Avro schema:
       "default": null
     },
     {
-      "name": "_ab_additional_properties",
+      "name": "_airbyte_additional_properties",
       "type": ["null", { "type": "map", "values": "string" }],
       "default": null
     }
@@ -88,7 +90,7 @@ will be converted to the following Avro object:
 ```json
 {
   "username": "Thomas",
-  "_ab_additional_properties": {
+  "_airbyte_additional_properties": {
     "active": "true",
     "age": "21",
     "auth": "{\"auth_type\":\"ssl\",\"api_key\":\"abcdefg/012345\",\"admin\":false,\"id\":1000}"
@@ -96,10 +98,12 @@ will be converted to the following Avro object:
 }
 ```
 
-Note that all fields other than the `username` is moved under `_ab_additional_properties` as a string.
+Note that all fields other than the `username` is moved under `__airbyte_additional_properties` as a string.
 
-If the Json object already has an `_ab_additional_properties` field, it will follow the same rule:
-- If the Avro schema defines an `_ab_additional_properties` field, all subfields inside this field will be kept in the Avro object, but they will all become string. Other unknown fields will also be stored under this field.
+#### Json Additional Properties
+
+The input Json object may also have some fields with unknown types. For example, if the Json object already has an `_airbyte_additional_properties` field, it will follow the same rule:
+- If the Avro schema defines an `_airbyte_additional_properties` field, all subfields inside this field will be kept in the Avro object, but they will all become string. Other unknown fields will also be stored under this field.
 - If the Avro schema does not define such field, it will be completely ignored.
 
 For example, with the same Avro schema, given this Json object:
@@ -108,7 +112,7 @@ For example, with the same Avro schema, given this Json object:
 {
   "username": "Thomas",
   "active": true,
-  "_ab_additional_properties": {
+  "_airbyte_additional_properties": {
     "age": 21,
     "auth": {
       "auth_type": "ssl",
@@ -125,7 +129,7 @@ will be converted to the following Avro object:
 ```json
 {
   "username": "Thomas",
-  "_ab_additional_properties": {
+  "_airbyte_additional_properties": {
     "age": "21",
     "active": "true",
     "auth": "{\"auth_type\":\"ssl\",\"api_key\":\"abcdefg/012345\",\"admin\":false,\"id\":1000}"
@@ -133,7 +137,17 @@ will be converted to the following Avro object:
 }
 ```
 
-Note the undefined `active` field is moved into `_ab_additional_properties`. `age` and `auth` that are originally in `_ab_additional_properties` becomes strings.
+Note the undefined `active` field is moved into `_airbyte_additional_properties`. `age` and `auth` that are originally in `_airbyte_additional_properties` becomes strings.
+
+The name of the additional properties field in the Json object is also customizable:
+
+```java
+JsonAvroConverter converter = JsonAvroConverter.builder()
+    .setJsonAdditionalPropsFieldNames(Set.of("_additional_properties"))
+    .build();
+```
+
+By default, both `_ab_additional_properties` and `_airbyte_additional_properties` are the additional properties field names on the Json object.
 
 ## Build
 - The build is upgraded to use Java 14 and Gradle 7.2 to match the build environment of Airbyte.

@@ -11,9 +11,12 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
@@ -34,7 +37,7 @@ public class JsonAvroConverterTest {
     return Resources.toString(resource, StandardCharsets.UTF_8);
   }
 
-  public static <T> List<T> toList(final Iterator<T> iterator) {
+  private static <T> List<T> toList(final Iterator<T> iterator) {
     final List<T> list = new ArrayList<>();
     while (iterator.hasNext()) {
       list.add(iterator.next());
@@ -42,7 +45,40 @@ public class JsonAvroConverterTest {
     return list;
   }
 
+  private static <T> Set<T> toSet(final Iterator<T> iterator) {
+    final Set<T> set = new HashSet<>();
+    while (iterator.hasNext()) {
+      set.add(iterator.next());
+    }
+    return set;
+  }
+
   public static class JsonToAvroConverterTestCaseProvider implements ArgumentsProvider {
+    private static Function<String, String> getNameTransformer(final JsonNode testCase) {
+      if (testCase.has("toUpperCase") && testCase.get("toUpperCase").asBoolean()) {
+        return String::toUpperCase;
+      } else {
+        return Function.identity();
+      }
+    }
+
+    private static Set<String> getJsonExtraPropsFields(final JsonNode testCase) {
+      if (!testCase.has("jsonExtraPropsFields")) {
+        return AdditionalPropertyField.DEFAULT_JSON_FIELD_NAMES;
+      }
+      return toSet(testCase.withArray("jsonExtraPropsFields").elements())
+          .stream()
+          .map(JsonNode::asText)
+          .collect(Collectors.toSet());
+    }
+
+    private static String getAvroExtraPropsField(final JsonNode testCase) {
+      if (!testCase.has("avroExtraPropsField")) {
+        return AdditionalPropertyField.DEFAULT_AVRO_FIELD_NAME;
+      }
+      return testCase.get("avroExtraPropsField").asText();
+    }
+
     @Override
     public Stream<? extends Arguments> provideArguments(final ExtensionContext context) throws Exception {
       final JsonNode testCases = JsonHelper.deserialize(readResource("json_avro_converter.json"));
@@ -51,16 +87,26 @@ public class JsonAvroConverterTest {
           testCase.get("avroSchema"),
           testCase.get("jsonObject"),
           testCase.get("avroObject"),
-          testCase.has("name_transformer") && testCase.get("name_transformer").asBoolean()));
+          getNameTransformer(testCase),
+          getJsonExtraPropsFields(testCase),
+          getAvroExtraPropsField(testCase)));
     }
   }
 
   @ParameterizedTest
   @ArgumentsSource(JsonToAvroConverterTestCaseProvider.class)
-  public void testJsonToAvroConverter(String testCaseName, JsonNode avroSchema, JsonNode jsonObject, JsonNode avroObject, boolean useNameTransformer)
+  public void testJsonToAvroConverter(String testCaseName,
+                                      JsonNode avroSchema,
+                                      JsonNode jsonObject,
+                                      JsonNode avroObject,
+                                      Function<String, String> nameTransformer,
+                                      Set<String> jsonExtraPropsFieldNames,
+                                      String avroExtraPropsFieldName)
       throws JsonProcessingException {
     final JsonAvroConverter converter = JsonAvroConverter.builder()
-        .setNameTransformer(useNameTransformer ? String::toUpperCase : Function.identity())
+        .setNameTransformer(nameTransformer)
+        .setJsonAdditionalPropsFieldNames(jsonExtraPropsFieldNames)
+        .setAvroAdditionalPropsFieldName(avroExtraPropsFieldName)
         .build();
     final Schema schema =  new Schema.Parser().parse(JsonHelper.serialize(avroSchema));
     final GenericData.Record actualAvroObject = converter.convertToGenericDataRecord(WRITER.writeValueAsBytes(jsonObject), schema);

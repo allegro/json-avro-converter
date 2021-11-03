@@ -114,7 +114,7 @@
           "default": null
         },
         {
-          "name": "_ab_additional_properties",
+          "name": "_airbyte_additional_properties",
           "type": [
             "null",
             {
@@ -142,7 +142,7 @@
       "username": "airbyte_developer",
       "active": true,
       "age": 150,
-      "_ab_additional_properties": {
+      "_airbyte_additional_properties": {
         "domain": "airbyte.io",
         "auth": "{\"auth_type\":\"ssl\",\"api_key\":\"abcdefg/012345\",\"admin\":false,\"id\":1000}"
       }
@@ -223,7 +223,7 @@
           "default": null
         },
         {
-          "name": "_ab_additional_properties",
+          "name": "_airbyte_additional_properties",
           "type": [
             "null",
             {
@@ -252,7 +252,127 @@
     "avroObject": {
       "username": "airbyte_developer",
       "active": true,
+      "_airbyte_additional_properties": {
+        "age": "150",
+        "domain": "airbyte.io",
+        "auth": "{\"auth_type\":\"ssl\",\"api_key\":\"abcdefg/012345\",\"admin\":false,\"id\":1000}"
+      }
+    }
+  },
+  {
+    "testCase": "custom_json_additional_properties_field_name",
+    "jsonExtraPropsFields": ["_custom_json_extra_props"],
+    "avroSchema": {
+      "type": "record",
+      "name": "test_schema",
+      "fields": [
+        {
+          "name": "username",
+          "type": [
+            "null",
+            "string"
+          ],
+          "default": null
+        },
+        {
+          "name": "active",
+          "type": [
+            "null",
+            "boolean"
+          ],
+          "default": null
+        },
+        {
+          "name": "_airbyte_additional_properties",
+          "type": [
+            "null",
+            {
+              "type": "map",
+              "values": "string"
+            }
+          ],
+          "default": null
+        }
+      ]
+    },
+    "jsonObject": {
+      "username": "airbyte_developer",
+      "active": true,
+      "domain": "airbyte.io",
+      "_custom_json_extra_props": {
+        "age": 150,
+        "auth": {
+          "auth_type": "ssl",
+          "api_key": "abcdefg/012345",
+          "admin": false,
+          "id": 1000
+        }
+      }
+    },
+    "avroObject": {
+      "username": "airbyte_developer",
+      "active": true,
+      "_airbyte_additional_properties": {
+        "age": "150",
+        "domain": "airbyte.io",
+        "auth": "{\"auth_type\":\"ssl\",\"api_key\":\"abcdefg/012345\",\"admin\":false,\"id\":1000}"
+      }
+    }
+  },
+  {
+    "testCase": "custom_avro_additional_properties_field_name",
+    "avroExtraPropsField": "_custom_avro_extra_props",
+    "avroSchema": {
+      "type": "record",
+      "name": "test_schema",
+      "fields": [
+        {
+          "name": "username",
+          "type": [
+            "null",
+            "string"
+          ],
+          "default": null
+        },
+        {
+          "name": "active",
+          "type": [
+            "null",
+            "boolean"
+          ],
+          "default": null
+        },
+        {
+          "name": "_custom_avro_extra_props",
+          "type": [
+            "null",
+            {
+              "type": "map",
+              "values": "string"
+            }
+          ],
+          "default": null
+        }
+      ]
+    },
+    "jsonObject": {
+      "username": "airbyte_developer",
+      "active": true,
+      "domain": "airbyte.io",
       "_ab_additional_properties": {
+        "age": 150,
+        "auth": {
+          "auth_type": "ssl",
+          "api_key": "abcdefg/012345",
+          "admin": false,
+          "id": 1000
+        }
+      }
+    },
+    "avroObject": {
+      "username": "airbyte_developer",
+      "active": true,
+      "_custom_avro_extra_props": {
         "age": "150",
         "domain": "airbyte.io",
         "auth": "{\"auth_type\":\"ssl\",\"api_key\":\"abcdefg/012345\",\"admin\":false,\"id\":1000}"
@@ -328,7 +448,7 @@
         }
       ]
     },
-    "name_transformer": true,
+    "toUpperCase": true,
     "jsonObject": {
       "username": "airbyte_developer",
       "auth": {
@@ -365,7 +485,7 @@
           "default": null
         },
         {
-          "name": "_ab_additional_properties",
+          "name": "_airbyte_additional_properties",
           "type": [
             "null",
             {
@@ -383,7 +503,7 @@
     },
     "avroObject": {
       "username": "airbyte_developer",
-      "_ab_additional_properties": null
+      "_airbyte_additional_properties": null
     }
   },
   {
@@ -401,7 +521,7 @@
           "default": null
         },
         {
-          "name": "_ab_additional_properties",
+          "name": "_airbyte_additional_properties",
           "type": [
             "null",
             {
@@ -419,7 +539,7 @@
     },
     "avroObject": {
       "username": "airbyte_developer",
-      "_ab_additional_properties": null
+      "_airbyte_additional_properties": null
     }
   }
 ]
