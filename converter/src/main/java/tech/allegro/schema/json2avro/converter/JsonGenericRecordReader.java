@@ -1,14 +1,16 @@
 package tech.allegro.schema.json2avro.converter;
 
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
-import static tech.allegro.schema.json2avro.converter.AdditionalPropertyField.DEFAULT_AVRO_FIELD_NAME;
-import static tech.allegro.schema.json2avro.converter.AdditionalPropertyField.DEFAULT_JSON_FIELD_NAMES;
-import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.enumException;
-import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.typeException;
-import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.unionException;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.avro.AvroRuntimeException;
+import org.apache.avro.AvroTypeException;
+import org.apache.avro.LogicalType;
+import org.apache.avro.LogicalTypes;
+import org.apache.avro.Schema;
+import org.apache.avro.Schema.Field;
+import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.GenericRecordBuilder;
+import tech.allegro.schema.json2avro.converter.util.DateTimeUtils;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -19,12 +21,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import org.apache.avro.AvroRuntimeException;
-import org.apache.avro.AvroTypeException;
-import org.apache.avro.Schema;
-import org.apache.avro.Schema.Field;
-import org.apache.avro.generic.GenericData;
-import org.apache.avro.generic.GenericRecordBuilder;
+
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
+import static tech.allegro.schema.json2avro.converter.AdditionalPropertyField.DEFAULT_AVRO_FIELD_NAME;
+import static tech.allegro.schema.json2avro.converter.AdditionalPropertyField.DEFAULT_JSON_FIELD_NAMES;
+import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.*;
 
 public class JsonGenericRecordReader {
 
@@ -153,8 +155,8 @@ public class JsonGenericRecordReader {
 
         if (allowAdditionalProps && additionalProps.size() > 0) {
             record.set(
-                avroExtraPropsFieldName,
-                read(avroExtraPropsField, AdditionalPropertyField.FIELD_SCHEMA, additionalProps, path, false));
+                    avroExtraPropsFieldName,
+                    read(avroExtraPropsField, AdditionalPropertyField.FIELD_SCHEMA, additionalProps, path, false));
         }
 
         return record.build();
@@ -168,7 +170,7 @@ public class JsonGenericRecordReader {
             path.addLast(fieldName);
         }
         Object result;
-
+        LogicalType logicalType = schema.getLogicalType();
         switch (schema.getType()) {
             case RECORD:
                 result = onValidType(value, Map.class, path, silently, map -> readRecord(map, schema, path));
@@ -183,10 +185,20 @@ public class JsonGenericRecordReader {
                 result = readUnion(field, schema, value, path);
                 break;
             case INT:
-                result = onValidNumber(value, path, silently, Number::intValue);
+                if (logicalType != null && logicalType.equals(LogicalTypes.date())) {
+                    result = onValidType(value, String.class, path, silently, DateTimeUtils::getEpochDay);
+                } else {
+                    result = onValidNumber(value, path, silently, Number::intValue);
+                }
                 break;
             case LONG:
-                result = onValidNumber(value, path, silently, Number::longValue);
+                if (logicalType != null && logicalType.equals(LogicalTypes.timestampMillis())) {
+                    result = onValidType(value, String.class, path, silently, DateTimeUtils::getEpochMillis);
+                } else if (logicalType != null && logicalType.equals(LogicalTypes.timeMicros())) {
+                    result = onValidType(value, String.class, path, silently, DateTimeUtils::getMicroSeconds);
+                } else {
+                    result = onValidNumber(value, path, silently, Number::longValue);
+                }
                 break;
             case FLOAT:
                 result = onValidNumber(value, path, silently, Number::floatValue);

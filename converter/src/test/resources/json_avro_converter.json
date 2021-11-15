@@ -542,4 +542,166 @@
       "_airbyte_additional_properties": null
     }
   }
+  ,{
+  "testCase": "simple_schema_with_time",
+  "avroSchema": {
+    "type": "record",
+    "name": "test_schema_with_time",
+    "fields": [
+      {
+        "name": "username",
+        "type": [
+          "null",
+          "string"
+        ],
+        "default": null
+      },
+      {
+        "name": "active",
+        "type": [
+          "null",
+          "boolean"
+        ],
+        "default": null
+      },
+      {
+        "name": "age",
+        "type": [
+          "null",
+          "int"
+        ],
+        "default": null
+      },
+      {
+        "name" : "rotten_time",
+        "type" : [ "null", {
+          "type" : "long",
+          "logicalType" : "time-micros"
+        } ],
+        "default" : null
+      }
+    ]
+  },
+  "jsonObject": {
+    "username": "airbyte_developer",
+    "active": true,
+    "age": 150,
+    "rotten_time": "12:41:03.215364"
+
+  },
+  "avroObject": {
+    "username": "airbyte_developer",
+    "active": true,
+    "age": 150,
+    "rotten_time": 45663215364
+  }
+},
+  {
+    "testCase": "simple_schema_with_datetime",
+    "avroSchema": {
+      "type": "record",
+      "name": "test_schema_with_datetime",
+      "fields": [
+        {
+          "name": "username",
+          "type": [
+            "null",
+            "string"
+          ],
+          "default": null
+        },
+        {
+          "name": "active",
+          "type": [
+            "null",
+            "boolean"
+          ],
+          "default": null
+        },
+        {
+          "name": "age",
+          "type": [
+            "null",
+            "int"
+          ],
+          "default": null
+        },
+        {
+          "name" : "stage_change_time",
+          "type" : [ "null", {
+            "type" : "long",
+            "logicalType" : "timestamp-millis"
+          } ],
+          "default" : null
+        }
+      ]
+    },
+    "jsonObject": {
+      "username": "airbyte_developer",
+      "active": true,
+      "age": 150,
+      "stage_change_time": "2018 Jul 15 12:00:00 GMT+08:00"
+
+    },
+    "avroObject": {
+      "username": "airbyte_developer",
+      "active": true,
+      "age": 150,
+      "stage_change_time": 1531627200000
+    }
+  },
+  {
+    "testCase": "simple_schema_with_date",
+    "avroSchema": {
+      "type": "record",
+      "name": "test_schema_with_date",
+      "fields": [
+        {
+          "name": "username",
+          "type": [
+            "null",
+            "string"
+          ],
+          "default": null
+        },
+        {
+          "name": "active",
+          "type": [
+            "null",
+            "boolean"
+          ],
+          "default": null
+        },
+        {
+          "name": "age",
+          "type": [
+            "null",
+            "int"
+          ],
+          "default": null
+        },
+        {
+          "name" : "last_activity_date",
+          "type" : [ "null", {
+            "type" : "int",
+            "logicalType" : "date"
+          } ],
+          "default" : null
+        }
+      ]
+    },
+    "jsonObject": {
+      "username": "airbyte_developer",
+      "active": true,
+      "age": 150,
+      "last_activity_date": "2021-10-10"
+
+    },
+    "avroObject": {
+      "username": "airbyte_developer",
+      "active": true,
+      "age": 150,
+      "last_activity_date": 18910
+    }
+  }
 ]
