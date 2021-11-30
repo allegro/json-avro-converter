@@ -1,14 +1,16 @@
 package tech.allegro.schema.json2avro.converter;
 
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
-import static tech.allegro.schema.json2avro.converter.AdditionalPropertyField.DEFAULT_AVRO_FIELD_NAME;
-import static tech.allegro.schema.json2avro.converter.AdditionalPropertyField.DEFAULT_JSON_FIELD_NAMES;
-import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.enumException;
-import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.typeException;
-import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.unionException;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.avro.AvroRuntimeException;
+import org.apache.avro.AvroTypeException;
+import org.apache.avro.LogicalType;
+import org.apache.avro.LogicalTypes;
+import org.apache.avro.Schema;
+import org.apache.avro.Schema.Field;
+import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.GenericRecordBuilder;
+import tech.allegro.schema.json2avro.converter.util.DateTimeUtils;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -19,12 +21,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import org.apache.avro.AvroRuntimeException;
-import org.apache.avro.AvroTypeException;
-import org.apache.avro.Schema;
-import org.apache.avro.Schema.Field;
-import org.apache.avro.generic.GenericData;
-import org.apache.avro.generic.GenericRecordBuilder;
+
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
+import static tech.allegro.schema.json2avro.converter.AdditionalPropertyField.DEFAULT_AVRO_FIELD_NAME;
+import static tech.allegro.schema.json2avro.converter.AdditionalPropertyField.DEFAULT_JSON_FIELD_NAMES;
+import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.enumException;
+import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.typeException;
+import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.unionException;
 
 public class JsonGenericRecordReader {
 
@@ -168,7 +172,7 @@ public class JsonGenericRecordReader {
             path.addLast(fieldName);
         }
         Object result;
-
+        LogicalType logicalType = schema.getLogicalType();
         switch (schema.getType()) {
             case RECORD:
                 result = onValidType(value, Map.class, path, silently, map -> readRecord(map, schema, path));
@@ -183,10 +187,25 @@ public class JsonGenericRecordReader {
                 result = readUnion(field, schema, value, path);
                 break;
             case INT:
-                result = onValidNumber(value, path, silently, Number::intValue);
+                // Only "date" logical type is expected here, because the Avro schema is converted from a Json schema,
+                // and this logical types corresponds to the Json "date" format.
+                if (logicalType != null && logicalType.equals(LogicalTypes.date())) {
+                    result = onValidType(value, String.class, path, silently, DateTimeUtils::getEpochDay);
+                } else {
+                    result = onValidNumber(value, path, silently, Number::intValue);
+                }
                 break;
             case LONG:
-                result = onValidNumber(value, path, silently, Number::longValue);
+                // Only "time-micros" and "timestamp-micros" logical types are expected here, because
+                // the Avro schema is converted from a Json schema, and the two logical types corresponds
+                // to the Json "time" and "date-time" formats.
+                if (logicalType != null && logicalType.equals(LogicalTypes.timestampMicros())) {
+                    result = onValidType(value, String.class, path, silently, DateTimeUtils::getEpochMicros);
+                } else if (logicalType != null && logicalType.equals(LogicalTypes.timeMicros())) {
+                    result = onValidType(value, String.class, path, silently, DateTimeUtils::getMicroSeconds);
+                } else {
+                    result = onValidNumber(value, path, silently, Number::longValue);
+                }
                 break;
             case FLOAT:
                 result = onValidNumber(value, path, silently, Number::floatValue);
@@ -267,7 +286,8 @@ public class JsonGenericRecordReader {
             throws AvroTypeException {
 
         if (type.isInstance(value)) {
-            return function.apply((T) value);
+            Object result = function.apply((T) value);
+            return result == null ? INCOMPATIBLE : result;
         } else {
             if (silently) {
                 return INCOMPATIBLE;
