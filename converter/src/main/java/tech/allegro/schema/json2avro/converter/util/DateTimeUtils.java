@@ -1,8 +1,5 @@
 package tech.allegro.schema.json2avro.converter.util;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -13,8 +10,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
 public class DateTimeUtils {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(DateTimeUtils.class);
 
     private static final DateTimeFormatter formatter =
             DateTimeFormatter.ofPattern("[yyyy][yy]['-']['/']['.'][' '][MMM][MM][M]['-']['/']['.'][' '][dd][d]" +
@@ -36,7 +31,7 @@ public class DateTimeUtils {
                 LocalDateTime dt = LocalDateTime.parse(dateTime, formatter);
                 instant = dt.toInstant(ZoneOffset.UTC);
             } catch (DateTimeParseException ex) {
-                LOGGER.error("Failed to parse date-time :" + dateTime);
+                // no logging since it may generate too much noise
             }
         }
         return instant == null ? null : instant.toEpochMilli() * 1000;
@@ -49,7 +44,7 @@ public class DateTimeUtils {
             LocalDate date = LocalDate.parse(dateTime, formatter);
             epochDay = (int) date.toEpochDay();
         } catch (DateTimeParseException e) {
-            LOGGER.error("Failed to parse date :" + dateTime);
+            // no logging since it may generate too much noise
         }
         return epochDay;
     }
@@ -68,7 +63,7 @@ public class DateTimeUtils {
                 LocalTime time = LocalTime.parse(dateTime, formatter);
                 nanoOfDay = time.toNanoOfDay();
             } catch (DateTimeParseException ex) {
-                LOGGER.error("Failed to parse time :" + dateTime);
+                // no logging since it may generate too much noise
             }
         }
         return nanoOfDay == null ? null : nanoOfDay / 1000;
