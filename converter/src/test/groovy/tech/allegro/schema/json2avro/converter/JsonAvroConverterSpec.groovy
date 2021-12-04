@@ -1,11 +1,15 @@
 package tech.allegro.schema.json2avro.converter
 
 import groovy.json.JsonSlurper
-import org.apache.avro.specific.SpecificRecord
-import org.apache.avro.specific.SpecificRecordBase
+import org.apache.avro.Schema
+import org.apache.avro.generic.GenericData
 import spock.lang.Specification
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper
+import tech.allegro.schema.json2avro.converter.types.AvroTypeConverter
+
+import java.time.LocalDateTime
+import java.time.ZoneOffset;
 
 
 class JsonAvroConverterSpec extends Specification {
@@ -67,7 +71,6 @@ class JsonAvroConverterSpec extends Specification {
         then:
         toMap(json) == toMap(converter.convertToJson(avro, schema))
     }
-
 
     def 'should convert bytes generic record'() {
         given:
@@ -708,7 +711,7 @@ class JsonAvroConverterSpec extends Specification {
         result.field_union == null
     }
 
-    def 'should convert optional fields should not be wrapped when converting from avro to json'() {
+    def "should convert optional fields should not be wrapped when converting from avro to json"() {
         given:
         def schema = '''
             {
@@ -742,7 +745,7 @@ class JsonAvroConverterSpec extends Specification {
         toMap(result) == toMap(json)
     }
 
-    def 'should print full path to invalid field on error'() {
+    def "should print full path to invalid field on error"() {
         given:
         def schema = '''
             {
@@ -784,7 +787,7 @@ class JsonAvroConverterSpec extends Specification {
         exception.cause.message  ==~ /.*field\.stringValue.*/
     }
 
-    def 'should parse enum types properly'() {
+    def "should parse enum types properly"() {
         given:
         def schema = '''
             {
@@ -816,7 +819,7 @@ class JsonAvroConverterSpec extends Specification {
         toMap(result) == toMap(json)
     }
 
-    def 'should throw the appropriate error when passing an invalid enum type'() {
+    def "should throw the appropriate error when passing an invalid enum type"() {
         given:
         def schema = '''
             {
@@ -849,7 +852,7 @@ class JsonAvroConverterSpec extends Specification {
         exception.cause.message  ==~ /.*enum type and be one of A, B, C.*/
     }
 
-    def 'should accept null when value can be of any nullable array/map type'() {
+    def "should accept null when value can be of any nullable array/map type"() {
         given:
         def schema = '''
             {
@@ -893,7 +896,7 @@ class JsonAvroConverterSpec extends Specification {
         !toMap(converter.convertToJson(avro, schema)).payload.foo
     }
 
-    def 'should convert specific record'() {
+    def "should convert specific record"() {
         given:
         def json = '''
         {
@@ -910,7 +913,7 @@ class JsonAvroConverterSpec extends Specification {
         result != null && result instanceof SpecificRecordConvertTest && result.getTest() == "test"
     }
 
-    def 'should convert specific record and back to json'() {
+    def "should convert specific record and back to json"() {
         given:
         def json = '''{"test":"test","enumTest":"s1"}'''
         def clazz = SpecificRecordConvertTest.class
@@ -923,6 +926,94 @@ class JsonAvroConverterSpec extends Specification {
         result != null && new String(result) == json
     }
 
+    def "should allow to customize the avro type conversion for a logical-type"() {
+        given:
+        def now = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC);
+        def additionalConverter = new AvroTypeConverter() {
+            @Override
+            Object convert(Schema.Field field, Schema schema, Object jsonValue, Deque<String> path, boolean silently) {
+                return now;
+            }
+
+            @Override
+            boolean canManage(Schema schema, Deque<String> path) {
+                return schema.getType() == Schema.Type.LONG && schema.getLogicalType().name == "timestamp-millis"
+            }
+        }
+
+        def converterWithCustomConverter = new JsonAvroConverter(new ObjectMapper(), new CompositeJsonToAvroReader([additionalConverter]))
+        def schema = '''
+            {
+              "type" : "record",
+              "name" : "testSchema",
+              "fields" : [
+                  {
+                    "name" : "customDate",
+                    "type" : {
+                      "type" : "long",
+                      "logicalType" : "timestamp-millis"
+                    }
+                  }
+              ]
+            }
+        '''
+
+        def json = '''
+        {
+            "customDate": "now"
+        }
+        '''
+
+        when:
+        GenericData.Record record = converterWithCustomConverter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
+
+        then:
+        now == record.get("customDate")
+    }
+
+    def "should allow to customize the avro type conversion for a field"() {
+        given:
+        def additionalConverter = new AvroTypeConverter() {
+            @Override
+            Object convert(Schema.Field field, Schema schema, Object jsonValue, Deque<String> path, boolean silently) {
+                return "custom-" + jsonValue;
+            }
+
+            @Override
+            boolean canManage(Schema schema, Deque<String> path) {
+                return path.getLast() == "customString"
+            }
+        }
+
+        def converterWithCustomConverter = new JsonAvroConverter(new CompositeJsonToAvroReader(additionalConverter))
+        def schema = '''
+            {
+              "type" : "record",
+              "name" : "testSchema",
+              "fields" : [
+                  {
+                    "name" : "customString",
+                    "type" : {
+                      "type" : "long",
+                      "logicalType" : "timestamp-millis"
+                    }
+                  }
+              ]
+            }
+        '''
+
+        def json = '''
+        {
+            "customString": "foo"
+        }
+        '''
+
+        when:
+        GenericData.Record record = converterWithCustomConverter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
+
+        then:
+        "custom-foo" == record.get("customString")
+    }
 
     def toMap(String json) {
         slurper.parseText(json)

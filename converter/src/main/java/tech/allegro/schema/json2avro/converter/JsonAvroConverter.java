@@ -33,6 +33,14 @@ public class JsonAvroConverter {
         this.recordReader = new JsonGenericRecordReader(objectMapper);
     }
 
+    public JsonAvroConverter(ObjectMapper objectMapper, JsonToAvroReader jsonToAvroReader) {
+        this.recordReader = new JsonGenericRecordReader(objectMapper, jsonToAvroReader);
+    }
+
+    public JsonAvroConverter(JsonToAvroReader jsonToAvroReader) {
+        this.recordReader = new JsonGenericRecordReader(jsonToAvroReader);
+    }
+
     public JsonAvroConverter(ObjectMapper objectMapper, UnknownFieldListener unknownFieldListener) {
         this.recordReader = new JsonGenericRecordReader(objectMapper, unknownFieldListener);
     }
