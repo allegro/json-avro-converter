@@ -220,7 +220,10 @@ public class JsonGenericRecordReader {
                 result = onValidType(value, String.class, path, silently, string -> ensureEnum(schema, string, path));
                 break;
             case STRING:
-                result = onValidType(value, String.class, path, silently, string -> string);
+                // When the schema is string, the value is forced to a string.
+                // This is necessary to handle a Json array field without items specification.
+                // In that case, the schema converter simply assumes that it is an array of strings.
+                result = value == null ? INCOMPATIBLE : AdditionalPropertyField.getValue(value);
                 break;
             case BYTES:
                 result = onValidType(value, String.class, path, silently, string -> bytesForString(string));
@@ -301,4 +304,3 @@ public class JsonGenericRecordReader {
         return onValidType(value, Number.class, path, silently, function);
     }
 }
-

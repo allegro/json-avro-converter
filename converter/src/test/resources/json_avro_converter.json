@@ -1,30 +1,4 @@
-[  {
-  "testCase": "logical_type_date_unconvertible_value",
-  "avroSchema": {
-    "type": "record",
-    "name": "logical_type_date_unconvertible_value",
-    "fields": [
-      {
-        "name": "last_convert_date",
-        "type": [
-          "null",
-          {
-            "type": "int",
-            "logicalType": "date"
-          },
-          "string"
-        ],
-        "default": null
-      }
-    ]
-  },
-  "jsonObject": {
-    "last_convert_date": "2021-10-10L"
-  },
-  "avroObject": {
-    "last_convert_date": "2021-10-10L"
-  }
-},
+[
   {
     "testCase": "simple_schema",
     "avroSchema": {
@@ -685,6 +659,33 @@
     },
     "avroObject": {
       "last_convert_date": "2021-10-10L"
+    }
+  },
+  {
+    "testCase": "unknown_array_to_string_array",
+    "description": "Json objects with array fields of unknown types will be converted to string array according to the schema",
+    "avroSchema": {
+      "type": "record",
+      "name": "unknown_array_to_string_array",
+      "fields": [
+        {
+          "name": "array_field",
+          "type": [
+            "null",
+            {
+              "type": "array",
+              "items": ["null", "string"]
+            }
+          ],
+          "default": null
+        }
+      ]
+    },
+    "jsonObject": {
+      "array_field": [101, "102", true, false, { "id": 103, "tag": "104"}, null]
+    },
+    "avroObject": {
+      "array_field": ["101", "102", "true", "false", "{\"id\":103,\"tag\":\"104\"}", null]
     }
   }
 ]

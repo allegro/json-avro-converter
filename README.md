@@ -25,6 +25,62 @@ JsonGenericRecordReader reader = JsonGenericRecordReader.builder()
     .build();
 ```
 
+### Enforced String Fields
+
+When a Json array field has no `items`, the element of that array field may have any type. However, Avro requires that each array has a clear type specification. To solve this problem, the [Json to Avro schema converter](https://github.com/airbytehq/airbyte/blob/master/airbyte-integrations/connectors/destination-s3/src/main/java/io/airbyte/integrations/destination/s3/avro/JsonToAvroSchemaConverter.java) assigns `string` as the type of the elements for any untyped arrays. Accordingly, this Json to Avro object converter follows the `string` schema, and any non-null field value is forced to be a string.
+
+For example, given the following Json schema:
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "identifier": {
+      "type": "array"
+    }
+  }
+}
+```
+
+and Json object:
+
+```json
+{
+  "identifier": ["151", 152, true, { "id": 153 }, null]
+}
+```
+
+the corresponding Avro schema is:
+
+```json
+{
+  "type": "record",
+  "fields": [
+    {
+      "name": "identifier",
+      "type": [
+        "null",
+        {
+          "type": "array",
+          "items": ["null", "string"]
+        }
+      ],
+      "default": null
+    }
+  ]
+}
+```
+
+and the Avro object is:
+
+```json
+{
+  "identifier": ["151", "152", "true", "{\"id\": 153}", null]
+}
+```
+
+Note that every non-null element inside the `identifier` array field is converted to string.
+
 ### Additional Properties
 
 #### Avro Additional Properties
