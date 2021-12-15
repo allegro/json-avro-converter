@@ -81,6 +81,8 @@ and the Avro object is:
 
 Note that every non-null element inside the `identifier` array field is converted to string.
 
+This enforcement only applies to an array whose items can only be nullable strings. For arrays with union item types, no string enforcing will be carried out.
+
 ### Additional Properties
 
 #### Avro Additional Properties

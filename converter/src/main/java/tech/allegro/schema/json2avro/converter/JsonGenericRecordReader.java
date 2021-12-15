@@ -1,12 +1,14 @@
 package tech.allegro.schema.json2avro.converter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.stream.Collectors;
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.AvroTypeException;
 import org.apache.avro.LogicalType;
 import org.apache.avro.LogicalTypes;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
+import org.apache.avro.Schema.Type;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecordBuilder;
 import tech.allegro.schema.json2avro.converter.util.DateTimeUtils;
@@ -164,8 +166,15 @@ public class JsonGenericRecordReader {
         return record.build();
     }
 
-    @SuppressWarnings("unchecked")
     private Object read(Schema.Field field, Schema schema, Object value, Deque<String> path, boolean silently) {
+        return read(field, schema, value, path, silently, false);
+    }
+
+    /**
+     * @param enforceString if this parameter is true and the schema type is string, any field value will be converted to string.
+     */
+    @SuppressWarnings("unchecked")
+    private Object read(Schema.Field field, Schema schema, Object value, Deque<String> path, boolean silently, boolean enforceString) {
         String fieldName = nameTransformer.apply(field.name());
         boolean pushed = !fieldName.equals(path.peekLast());
         if (pushed) {
@@ -173,6 +182,7 @@ public class JsonGenericRecordReader {
         }
         Object result;
         LogicalType logicalType = schema.getLogicalType();
+        System.out.println("Read schema: " + schema.getType() + ", value: " + value);
         switch (schema.getType()) {
             case RECORD:
                 result = onValidType(value, Map.class, path, silently, map -> readRecord(map, schema, path));
@@ -184,7 +194,7 @@ public class JsonGenericRecordReader {
                 result = onValidType(value, Map.class, path, silently, map -> readMap(field, schema, map, path));
                 break;
             case UNION:
-                result = readUnion(field, schema, value, path);
+                result = readUnion(field, schema, value, path, enforceString);
                 break;
             case INT:
                 // Only "date" logical type is expected here, because the Avro schema is converted from a Json schema,
@@ -220,10 +230,11 @@ public class JsonGenericRecordReader {
                 result = onValidType(value, String.class, path, silently, string -> ensureEnum(schema, string, path));
                 break;
             case STRING:
-                // When the schema is string, the value is forced to a string.
-                // This is necessary to handle a Json array field without items specification.
-                // In that case, the schema converter simply assumes that it is an array of strings.
-                result = value == null ? INCOMPATIBLE : AdditionalPropertyField.getValue(value);
+                if (enforceString) {
+                    result = value == null ? INCOMPATIBLE : AdditionalPropertyField.getValue(value);
+                } else {
+                    result = onValidType(value, String.class, path, silently, string -> string);
+                }
                 break;
             case BYTES:
                 result = onValidType(value, String.class, path, silently, string -> bytesForString(string));
@@ -242,7 +253,17 @@ public class JsonGenericRecordReader {
     }
 
     private List<Object> readArray(Schema.Field field, Schema schema, List<Object> items, Deque<String> path) {
-        return items.stream().map(item -> read(field, schema.getElementType(), item, path, false)).collect(toList());
+        // When all array elements are supposed to be null or string, we enforce array values to be string.
+        // This is to properly handle Json arrays that do not follow the schema.
+        Set<Type> nonNullElementTypes = schema.getElementType()
+            .getTypes().stream()
+            .map(Schema::getType)
+            .filter(t -> t != Type.NULL)
+            .collect(Collectors.toSet());
+        boolean enforceString = nonNullElementTypes.size() == 1 && nonNullElementTypes.contains(Type.STRING);
+        return items.stream()
+            .map(item -> read(field, schema.getElementType(), item, path, false, enforceString))
+            .collect(toList());
     }
 
     private Map<String, Object> readMap(Schema.Field field, Schema schema, Map<String, Object> map, Deque<String> path) {
@@ -251,11 +272,11 @@ public class JsonGenericRecordReader {
         return result;
     }
 
-    private Object readUnion(Schema.Field field, Schema schema, Object value, Deque<String> path) {
+    private Object readUnion(Schema.Field field, Schema schema, Object value, Deque<String> path, boolean enforceString) {
         List<Schema> types = schema.getTypes();
         for (Schema type : types) {
             try {
-                Object nestedValue = read(field, type, value, path, true);
+                Object nestedValue = read(field, type, value, path, true, enforceString);
                 if (nestedValue == INCOMPATIBLE) {
                     continue;
                 } else {

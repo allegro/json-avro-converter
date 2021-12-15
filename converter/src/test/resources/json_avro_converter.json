@@ -662,6 +662,32 @@
     }
   },
   {
+    "testCase": "typed_array",
+    "avroSchema": {
+      "type": "record",
+      "name": "typed_array",
+      "fields": [
+        {
+          "name": "array_field",
+          "type": [
+            "null",
+            {
+              "type": "array",
+              "items": ["null", "string", "int", "boolean"]
+            }
+          ],
+          "default": null
+        }
+      ]
+    },
+    "jsonObject": {
+      "array_field": [101, "102", true, false, null]
+    },
+    "avroObject": {
+      "array_field": [101, "102", true, false, null]
+    }
+  },
+  {
     "testCase": "unknown_array_to_string_array",
     "description": "Json objects with array fields of unknown types will be converted to string array according to the schema",
     "avroSchema": {
