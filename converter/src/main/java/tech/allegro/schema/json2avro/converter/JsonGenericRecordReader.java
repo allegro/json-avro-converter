@@ -182,7 +182,6 @@ public class JsonGenericRecordReader {
         }
         Object result;
         LogicalType logicalType = schema.getLogicalType();
-        System.out.println("Read schema: " + schema.getType() + ", value: " + value);
         switch (schema.getType()) {
             case RECORD:
                 result = onValidType(value, Map.class, path, silently, map -> readRecord(map, schema, path));
