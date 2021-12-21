@@ -17,6 +17,7 @@ plugins {
     // id 'jacoco'
     // https://github.com/melix/jmh-gradle-plugin#what-plugin-version-to-use
     id 'me.champeau.gradle.jmh' version '0.5.3'
+    id 'pmd'
 }
 
 apply plugin: 'com.commercehub.gradle.plugin.avro'
@@ -73,4 +74,10 @@ test {
         events "passed", "skipped", "failed"
         exceptionFormat 'full'
     }
+}
+
+pmd {
+    toolVersion = "6.41.0"
+    ruleSetFiles = files("config/pmd.xml")
+    ruleSets = []
 }
