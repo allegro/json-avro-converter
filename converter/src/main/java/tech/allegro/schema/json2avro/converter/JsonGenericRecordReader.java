@@ -104,10 +104,14 @@ public class JsonGenericRecordReader {
                 result = onValidNumber(value, path, silently, Number::longValue);
                 break;
             case FLOAT:
-                result = onValidNumber(value, path, silently, Number::floatValue);
+                result = value instanceof String ? 
+                        onValidType(value, String.class, path, silently, Float::valueOf) :
+                        onValidNumber(value, path, silently, Number::floatValue);
                 break;
             case DOUBLE:
-                result = onValidNumber(value, path, silently, Number::doubleValue);
+                result = value instanceof String ?
+                        onValidType(value, String.class, path, silently, Double::valueOf) :
+                        onValidNumber(value, path, silently, Number::doubleValue);
                 break;
             case BOOLEAN:
                 result = onValidType(value, Boolean.class, path, silently, bool -> bool);
