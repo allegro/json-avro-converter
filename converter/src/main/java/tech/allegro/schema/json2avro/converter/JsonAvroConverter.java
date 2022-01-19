@@ -21,8 +21,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.Serializable;
 
-public class JsonAvroConverter {
+public class JsonAvroConverter implements Serializable {
     private JsonGenericRecordReader recordReader;
 
     public JsonAvroConverter() {
