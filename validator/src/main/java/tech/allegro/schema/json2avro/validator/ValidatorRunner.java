@@ -5,12 +5,13 @@ import com.beust.jcommander.JCommander;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tech.allegro.schema.json2avro.validator.schema.ValidationMode;
+import tech.allegro.schema.json2avro.validator.schema.ValidationOutput;
 import tech.allegro.schema.json2avro.validator.schema.ValidatorException;
 import tech.allegro.schema.json2avro.validator.schema.Validators;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 
 public class ValidatorRunner {
 
@@ -23,6 +24,7 @@ public class ValidatorRunner {
                     .withMode(getMode(options))
                     .withInput(readFile(options.getInputPath()))
                     .withSchema(readFile(options.getSchemaPath()))
+                    .withOutput(getOutput(options.getOutputPath()))
                     .build()
                     .validate();
         } catch (IOException e) {
@@ -46,8 +48,12 @@ public class ValidatorRunner {
         return ValidationMode.from(options.getMode());
     }
 
-    private static byte[] readFile(String path) throws IOException {
-        return Files.readAllBytes(Paths.get(path));
+    private static byte[] readFile(Path path) throws IOException {
+        return Files.readAllBytes(path);
+    }
+
+    private static ValidationOutput getOutput(Path outputPath) {
+        return outputPath != null ? new FileValidationOutput(outputPath) : ValidationOutput.NO_OUTPUT;
     }
 
     private static void configureLogging(ValidatorOptions options) {
