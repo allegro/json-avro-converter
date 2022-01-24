@@ -6,7 +6,6 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.3'
         classpath 'com.commercehub.gradle.plugin:gradle-avro-plugin:0.14.0'
     }
 }
@@ -14,15 +13,12 @@ buildscript {
 plugins {
     id 'java'
     id 'groovy'
-    id 'maven'
     // does not work with Java 10
     // id 'jacoco'
-    id 'com.bmuschko.nexus' version '2.3.1'
     id 'me.champeau.gradle.jmh' version '0.4.5'
 }
 
 apply plugin: 'com.commercehub.gradle.plugin.avro'
-apply plugin: 'io.codearte.nexus-staging'
 apply plugin: 'idea'
 
 configurations {
@@ -51,42 +47,6 @@ dependencies {
 
     jmh 'org.openjdk.jmh:jmh-core:1.20'
     jmh 'org.openjdk.jmh:jmh-generator-annprocess:1.20'
-}
-
-modifyPom {
-    project {
-        name project.name
-        description 'JSON to Avro conversion tool designed to make migration to Avro easier'
-        url 'https://github.com/allegro/json-avro-converter'
-        inceptionYear '2016'
-
-        scm {
-            url 'https://github.com/allegro/json-avro-converter'
-            connection 'scm:git@github.com:allegro/json-avro-converter.git'
-            developerConnection 'scm:git@github.com:allegro/json-avro-converter.git'
-        }
-
-        licenses {
-            license {
-                name 'The Apache Software License, Version 2.0'
-                url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-            }
-        }
-
-        developers {
-            developer {
-                id 'skylab'
-                name 'Team Skylab'
-            }
-        }
-    }
-}
-
-nexusStaging {
-    packageGroup = "tech.allegro"
-
-    numberOfRetries = 15
-    delayBetweenRetriesInMillis = 5000
 }
 
 idea {
