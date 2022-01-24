@@ -72,6 +72,7 @@ public class CompositeJsonToAvroReader implements JsonToAvroReader {
         this.converters.add(new UnionConverter(this));
     }
 
+    @Override
     public GenericData.Record read(Map<String, Object> json, Schema schema) {
         return (GenericData.Record) this.mainRecordConverter.convert(null, schema, json, new ArrayDeque<>(), false);
     }
@@ -82,16 +83,12 @@ public class CompositeJsonToAvroReader implements JsonToAvroReader {
         if (pushed) {
             path.addLast(field.name());
         }
-        Object result;
 
-        final Optional<AvroTypeConverter> converter = this.converters.stream()
+        AvroTypeConverter converter = this.converters.stream()
                 .filter(c -> c.canManage(schema, path))
-                .findFirst();
-        if (converter.isPresent()) {
-            result = converter.get().convert(field, schema, jsonValue, path, silently);
-        } else {
-            throw new AvroTypeException("Unsupported type: " + field.schema().getType());
-        }
+                .findFirst()
+                .orElseThrow(() -> new AvroTypeException("Unsupported type: " + field.schema().getType()));
+        Object result = converter.convert(field, schema, jsonValue, path, silently);
 
         if (pushed) {
             path.removeLast();

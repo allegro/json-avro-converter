@@ -84,7 +84,7 @@ public class CustomFieldConverter implements AvroTypeConverter {
 
     @Override
     public boolean canManage(Schema schema, Deque<String> path) {
-        return path.getLast() == "customField";
+        return "customField".equals(path.getLast());
     }
 }
 ```
