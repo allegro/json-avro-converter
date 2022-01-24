@@ -147,7 +147,7 @@ class AvroValidatorSpec extends Specification {
         validator.validate()
 
         then:
-        def actualUser = new JsonSlurper().parseText(Files.readString(savedUserPath))
+        def actualUser = new JsonSlurper().parse(Files.readAllBytes(savedUserPath))
 
         expect:
         actualUser.name == "Bob"
