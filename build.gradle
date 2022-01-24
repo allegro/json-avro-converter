@@ -66,6 +66,11 @@ configure(subprojects - project(':validator')) {
     apply plugin: 'maven-publish'
     apply plugin: 'signing'
 
+    java {
+        withJavadocJar()
+        withSourcesJar()
+    }
+
     publishing {
         publications {
             mavenJava(MavenPublication) {
