@@ -69,6 +69,31 @@ try {
 }
 ```
 
+### Advanced usage
+
+If some avro types are not managed by the library, you can extend it by adding your own AvroTypeConverter. 
+An AvroTypeConverter read a json value and convert it to an avro value. This can be useful when some logical-types are missing. 
+The AvroTypeConverter can also be used to define a customer converter for a specific path. 
+
+```java
+public class CustomFieldConverter implements AvroTypeConverter {
+    @Override
+    public Object convert(Schema.Field field, Schema schema, Object jsonValue, Deque<String> path, boolean silently) {
+        return "custom-" + jsonValue;
+    }
+
+    @Override
+    public boolean canManage(Schema schema, Deque<String> path) {
+        return "customField".equals(path.getLast());
+    }
+}
+```
+
+To use the converter you should add it to the `JsonAvroConverter`, to do that you should build it like that
+```java
+new JsonAvroConverter(new CompositeJsonToAvroReader(new CustomFieldConverter()))
+```
+
 ## Validator
 
 A command line tool for validating your JSON/Avro documents against a schema.

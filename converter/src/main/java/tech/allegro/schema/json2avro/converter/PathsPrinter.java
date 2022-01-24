@@ -4,13 +4,13 @@ import java.util.Deque;
 
 import static java.util.stream.Collectors.joining;
 
-class PathsPrinter {
+public class PathsPrinter {
 
-    static String print(Deque<String> path) {
+    public static String print(Deque<String> path) {
         return path.stream().collect(joining("."));
     }
 
-    static String print(Deque<String> path, String additionalSegment) {
+    public static String print(Deque<String> path, String additionalSegment) {
     	if (path.isEmpty()) {
     		return additionalSegment;
     	}
