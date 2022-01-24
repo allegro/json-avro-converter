@@ -1,6 +1,6 @@
 # json-avro-converter
 
-[![Build Status](https://travis-ci.org/allegro/json-avro-converter.svg?branch=master)](https://travis-ci.org/allegro/json-avro-converter)
+[![Build Status](https://github.com/allegro/json-avro-converter/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/allegro/json-avro-converter/actions/workflows/ci.yml?query=branch%3Amaster)
 
 This project is a JSON to Avro conversion tool designed to make migration to Avro easier. It includes a simple command line validator.
 
