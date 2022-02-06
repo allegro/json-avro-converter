@@ -25,7 +25,7 @@ public class BytesDecimalConverter implements AvroTypeConverter {
             return ByteBuffer.wrap(bigDecimal.unscaledValue().toByteArray());
         } catch (NumberFormatException exception) {
             if (silently) {
-                return INCOMPATIBLE;
+                return new Incompatible("string number, decimal");
             } else {
                 throw new AvroTypeException("Field " + print(path) + " is expected to be a valid number. current value is " + value + ".");
             }

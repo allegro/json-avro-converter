@@ -1089,7 +1089,7 @@ class JsonAvroConverterSpec extends Specification {
 
         then:
         def e = thrown AvroConversionException
-        e.message == "Failed to convert JSON to Avro: Could not evaluate union, field datetime is expected to be one of these: LONG, NULL. If this is a complex type, check if offending field: datetime adheres to schema."
+        e.message == "Failed to convert JSON to Avro: Could not evaluate union, field datetime is expected to be one of these: date time string, timestamp number, NULL. If this is a complex type, check if offending field: datetime adheres to schema."
     }
 
     def "should convert json numeric to avro decimal"() {
@@ -1227,7 +1227,7 @@ class JsonAvroConverterSpec extends Specification {
 
         then:
         def e = thrown AvroConversionException
-        e.message == "Failed to convert JSON to Avro: Could not evaluate union, field byteDecimal is expected to be one of these: BYTES, NULL. If this is a complex type, check if offending field: byteDecimal adheres to schema."
+        e.message == "Failed to convert JSON to Avro: Could not evaluate union, field byteDecimal is expected to be one of these: string number, decimal, NULL. If this is a complex type, check if offending field: byteDecimal adheres to schema."
     }
 
     def "should convert specific record"() {

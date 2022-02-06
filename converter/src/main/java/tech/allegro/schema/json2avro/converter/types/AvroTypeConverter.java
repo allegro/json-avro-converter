@@ -6,11 +6,6 @@ import java.util.Deque;
 
 public interface AvroTypeConverter {
     /**
-     * This object should be returned by `convert` method when silently is true when the value type is not compatible with the avro type
-     */
-    Object INCOMPATIBLE = new Object();
-
-    /**
      * convert the json jsonValue to the avro jsonValue
      *
      * @param field the field to convert
@@ -19,7 +14,7 @@ public interface AvroTypeConverter {
      * @param path the path of the field
      * @param silently should be false to throw an error in case of incompatible java type for the avro type
      *
-     * @return the converted jsonValue
+     * @return the converted jsonValue or an Incompatible instance if silently is true and value is incompatible
      */
     Object convert(Schema.Field field, Schema schema, Object jsonValue, Deque<String> path, boolean silently);
 
@@ -35,5 +30,13 @@ public interface AvroTypeConverter {
 
     static boolean isLogicalType(Schema schema, String logicalType) {
         return schema.getLogicalType() != null && logicalType.equals(schema.getLogicalType().getName());
+    }
+
+    class Incompatible {
+        public final String expected;
+
+        public Incompatible(String expected) {
+            this.expected = expected;
+        }
     }
 }

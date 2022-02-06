@@ -15,6 +15,7 @@ import static tech.allegro.schema.json2avro.converter.types.AvroTypeConverter.is
 
 public class LongTimestampMillisConverter implements AvroTypeConverter {
     public static final AvroTypeConverter INSTANCE = new LongTimestampMillisConverter(DateTimeFormatter.ISO_DATE_TIME);
+    public static final String VALID_JSON_FORMAT = "date time string, timestamp number";
 
     private final DateTimeFormatter dateTimeFormatter;
 
@@ -31,7 +32,7 @@ public class LongTimestampMillisConverter implements AvroTypeConverter {
                 return dateTimestamp * 1000;
             } catch (DateTimeParseException exception) {
                 if (silently) {
-                    return INCOMPATIBLE;
+                    return new Incompatible(VALID_JSON_FORMAT);
                 } else {
                     throw new AvroTypeException("Field " + print(path) + " should be a valid date time.");
                 }
@@ -41,7 +42,7 @@ public class LongTimestampMillisConverter implements AvroTypeConverter {
         }
 
         if (silently) {
-            return INCOMPATIBLE;
+            return new Incompatible(VALID_JSON_FORMAT);
         } else {
             throw new AvroTypeException("Field " + print(path) + " is expected to be type: java.lang.String or java.lang.Number.");
         }
