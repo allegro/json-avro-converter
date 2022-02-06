@@ -6,7 +6,7 @@ import java.util.Deque;
 
 public interface AvroTypeConverter {
     /**
-     * This object should be returned by `convert` method when silently is false when the value type is not compatible with the avro type
+     * This object should be returned by `convert` method when silently is true when the value type is not compatible with the avro type
      */
     Object INCOMPATIBLE = new Object();
 
@@ -32,4 +32,8 @@ public interface AvroTypeConverter {
      * @return true if this class should be used to convert the value
      */
     boolean canManage(Schema schema, Deque<String> path);
+
+    static boolean isLogicalType(Schema schema, String logicalType) {
+        return schema.getLogicalType() != null && logicalType.equals(schema.getLogicalType().getName());
+    }
 }
