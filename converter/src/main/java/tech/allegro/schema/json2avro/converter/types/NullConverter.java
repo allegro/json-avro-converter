@@ -13,7 +13,7 @@ public class NullConverter implements AvroTypeConverter {
 
     @Override
     public Object convert(Schema.Field field, Schema schema, Object jsonValue, Deque<String> path, boolean silently) {
-        return jsonValue == null ? null : INCOMPATIBLE;
+        return jsonValue == null ? null : new Incompatible("NULL");
     }
 
     @Override

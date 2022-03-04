@@ -6,6 +6,8 @@ import tech.allegro.schema.json2avro.converter.PathsPrinter;
 
 import java.util.Deque;
 
+import static tech.allegro.schema.json2avro.converter.PathsPrinter.print;
+
 public abstract class AvroTypeConverterWithStrictJavaTypeCheck<T> implements AvroTypeConverter {
     private final Class<T> javaType;
 
@@ -20,7 +22,7 @@ public abstract class AvroTypeConverterWithStrictJavaTypeCheck<T> implements Avr
             return this.convertValue(field, schema, (T) jsonValue, path, silently);
         } else {
             if (silently) {
-                return INCOMPATIBLE;
+                return new Incompatible(this.javaType.getTypeName());
             } else {
                 throw typeException(path, javaType.getTypeName());
             }
@@ -30,11 +32,6 @@ public abstract class AvroTypeConverterWithStrictJavaTypeCheck<T> implements Avr
     public abstract Object convertValue(Schema.Field field, Schema schema, T value, Deque<String> path, boolean silently);
 
     private static AvroTypeException typeException(Deque<String> fieldPath, String expectedType) {
-        return new AvroTypeException(new StringBuilder()
-                .append("Field ")
-                .append(PathsPrinter.print(fieldPath))
-                .append(" is expected to be type: ")
-                .append(expectedType)
-                .toString());
+        return new AvroTypeException("Field " + print(fieldPath) + " is expected to be type: " + expectedType);
     }
 }
