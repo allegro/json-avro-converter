@@ -9,6 +9,7 @@ import java.util.Deque;
 import java.util.List;
 
 import static java.util.stream.Collectors.joining;
+import static tech.allegro.schema.json2avro.converter.PathsPrinter.print;
 
 public class EnumConverter extends AvroTypeConverterWithStrictJavaTypeCheck<String> {
     public static final AvroTypeConverter INSTANCE = new EnumConverter();
@@ -32,11 +33,6 @@ public class EnumConverter extends AvroTypeConverterWithStrictJavaTypeCheck<Stri
     }
 
     private static AvroTypeException enumException(Deque<String> fieldPath, String expectedSymbols) {
-        return new AvroTypeException(new StringBuilder()
-                .append("Field ")
-                .append(PathsPrinter.print(fieldPath))
-                .append(" is expected to be of enum type and be one of ")
-                .append(expectedSymbols)
-                .toString());
+        return new AvroTypeException("Field " + print(fieldPath) + " is expected to be of enum type and be one of " + expectedSymbols);
     }
 }

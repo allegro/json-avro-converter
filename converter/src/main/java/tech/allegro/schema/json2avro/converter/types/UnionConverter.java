@@ -6,10 +6,12 @@ import org.apache.avro.Schema;
 import tech.allegro.schema.json2avro.converter.JsonToAvroReader;
 import tech.allegro.schema.json2avro.converter.PathsPrinter;
 
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
 import static java.util.stream.Collectors.joining;
+import static tech.allegro.schema.json2avro.converter.PathsPrinter.print;
 
 public class UnionConverter implements AvroTypeConverter {
     private final JsonToAvroReader jsonToAvroReader;
@@ -21,11 +23,12 @@ public class UnionConverter implements AvroTypeConverter {
     @Override
     public Object convert(Schema.Field field, Schema schema, Object jsonValue, Deque<String> path, boolean silently) {
         List<Schema> types = schema.getTypes();
+        List<String> incompatibleTypes = new ArrayList<>();
         for (Schema type : types) {
             try {
                 Object nestedValue = this.jsonToAvroReader.read(field, type, jsonValue, path, true);
-                if (nestedValue == INCOMPATIBLE) {
-                    continue;
+                if (nestedValue instanceof Incompatible) {
+                    incompatibleTypes.add(((Incompatible) nestedValue).expected);
                 } else {
                     return nestedValue;
                 }
@@ -34,10 +37,7 @@ public class UnionConverter implements AvroTypeConverter {
                 continue;
             }
         }
-        throw unionException(
-                field.name(),
-                types.stream().map(Schema::getType).map(Object::toString).collect(joining(", ")),
-                path);
+        throw unionException(field.name(), String.join(", ", incompatibleTypes), path);
     }
 
     @Override
@@ -46,14 +46,10 @@ public class UnionConverter implements AvroTypeConverter {
     }
 
     private static AvroTypeException unionException(String fieldName, String expectedTypes, Deque<String> offendingPath) {
-        return new AvroTypeException(new StringBuilder()
-                .append("Could not evaluate union, field ")
-                .append(fieldName)
-                .append(" is expected to be one of these: ")
-                .append(expectedTypes)
-                .append(". If this is a complex type, check if offending field: ")
-                .append(PathsPrinter.print(offendingPath))
-                .append(" adheres to schema.")
-                .toString());
+        return new AvroTypeException("Could not evaluate union, field " +
+                fieldName +
+                " is expected to be one of these: " +
+                expectedTypes +
+                ". If this is a complex type, check if offending field: " + print(offendingPath) + " adheres to schema.");
     }
 }

@@ -4,7 +4,9 @@ import org.apache.avro.AvroTypeException;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import tech.allegro.schema.json2avro.converter.types.ArrayConverter;
+import tech.allegro.schema.json2avro.converter.types.BytesDecimalConverter;
 import tech.allegro.schema.json2avro.converter.types.EnumConverter;
+import tech.allegro.schema.json2avro.converter.types.LongTimestampMillisConverter;
 import tech.allegro.schema.json2avro.converter.types.MapConverter;
 import tech.allegro.schema.json2avro.converter.types.NullConverter;
 import tech.allegro.schema.json2avro.converter.types.PrimitiveConverter;
@@ -57,6 +59,8 @@ public class CompositeJsonToAvroReader implements JsonToAvroReader {
         this.mainRecordConverter = new RecordConverter(this, unknownFieldListener);
         this.converters = new ArrayList<>();
         this.converters.addAll(additionalConverters);
+        this.converters.add(BytesDecimalConverter.INSTANCE);
+        this.converters.add(LongTimestampMillisConverter.INSTANCE);
         this.converters.add(PrimitiveConverter.BOOLEAN);
         this.converters.add(PrimitiveConverter.STRING);
         this.converters.add(PrimitiveConverter.INT);
