@@ -6,6 +6,7 @@ import org.apache.avro.generic.GenericData
 import spock.lang.Specification
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import spock.lang.Unroll
 import tech.allegro.schema.json2avro.converter.types.AvroTypeConverter
 
 import java.nio.ByteBuffer
@@ -130,6 +131,7 @@ class JsonAvroConverterSpec extends Specification {
         e.message == "Failed to convert JSON to Avro: Field field_integer is expected to be type: java.lang.Number"
     }
 
+    @Unroll
     def "should ignore unknown fields"() {
         given:
         def schema = '''
@@ -157,12 +159,15 @@ class JsonAvroConverterSpec extends Specification {
         '''
 
         when:
-        byte[] avro = converter.convertToAvro(json.bytes, schema)
+        byte[] avro = converterNotFailingOnUnknown.convertToAvro(json.bytes, schema)
 
         then:
-        def result = toMap(converter.convertToJson(avro, schema))
+        def result = toMap(converterNotFailingOnUnknown.convertToJson(avro, schema))
         result.field_string == "foobar"
         result.keySet().size() == 1
+
+        where:
+        converterNotFailingOnUnknown << [new JsonAvroConverter(), new JsonAvroConverter(new ObjectMapper())]
     }
     
     def "should fail unknown fields"() {
