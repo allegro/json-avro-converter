@@ -28,7 +28,7 @@ public class CompositeJsonToAvroReader implements JsonToAvroReader {
     private final AvroTypeConverter mainRecordConverter;
 
     public CompositeJsonToAvroReader() {
-        this(Collections.emptyList(), new FailOnUnknownField());
+        this(Collections.emptyList(), null);
     }
 
     /**
@@ -37,7 +37,7 @@ public class CompositeJsonToAvroReader implements JsonToAvroReader {
      * @param additionalConverters additional converters that implement {@link AvroTypeConverter}. These converters will override default converters.
      */
     public CompositeJsonToAvroReader(List<AvroTypeConverter> additionalConverters) {
-        this(additionalConverters, new FailOnUnknownField());
+        this(additionalConverters, null);
     }
 
     /**
