@@ -13,13 +13,13 @@ import static org.apache.avro.Schema.Type.LONG;
 import static tech.allegro.schema.json2avro.converter.PathsPrinter.print;
 import static tech.allegro.schema.json2avro.converter.types.AvroTypeConverter.isLogicalType;
 
-public class LongTimestampMillisConverter implements AvroTypeConverter {
-    public static final AvroTypeConverter INSTANCE = new LongTimestampMillisConverter(DateTimeFormatter.ISO_DATE_TIME);
+public class LongTimestampMicrosConverter implements AvroTypeConverter {
+    public static final AvroTypeConverter INSTANCE = new LongTimestampMicrosConverter(DateTimeFormatter.ISO_DATE_TIME);
     public static final String VALID_JSON_FORMAT = "date time string, timestamp number";
 
     private final DateTimeFormatter dateTimeFormatter;
 
-    public LongTimestampMillisConverter(DateTimeFormatter dateTimeFormatter) {
+    public LongTimestampMicrosConverter(DateTimeFormatter dateTimeFormatter) {
         this.dateTimeFormatter = dateTimeFormatter;
     }
 
@@ -28,10 +28,24 @@ public class LongTimestampMillisConverter implements AvroTypeConverter {
         if (jsonValue instanceof String) {
             String dateString = (String) jsonValue;
             try {
-                return Instant.from(dateTimeFormatter.parse(dateString)).toEpochMilli();
+                Instant instant = Instant.from(dateTimeFormatter.parse(dateString));
+                // based on org.apache.avro.data.TimestampMicrosConversion
+                long seconds = instant.getEpochSecond();
+                int nanos = instant.getNano();
+
+                if (seconds < 0 && nanos > 0) {
+                    long micros = Math.multiplyExact(seconds + 1, 1_000_000);
+                    long adjustment = (nanos / 1_000L) - 1_000_000;
+
+                    return Math.addExact(micros, adjustment);
+                } else {
+                    long micros = Math.multiplyExact(seconds, 1_000_000);
+
+                    return Math.addExact(micros, nanos / 1_000);
+                }
             } catch (DateTimeParseException exception) {
                 if (silently) {
-                    return new Incompatible(VALID_JSON_FORMAT);
+                    return new AvroTypeConverter.Incompatible(VALID_JSON_FORMAT);
                 } else {
                     throw new AvroTypeException("Field " + print(path) + " should be a valid date time.");
                 }
@@ -41,7 +55,7 @@ public class LongTimestampMillisConverter implements AvroTypeConverter {
         }
 
         if (silently) {
-            return new Incompatible(VALID_JSON_FORMAT);
+            return new AvroTypeConverter.Incompatible(VALID_JSON_FORMAT);
         } else {
             throw new AvroTypeException("Field " + print(path) + " is expected to be type: java.lang.String or java.lang.Number.");
         }
@@ -49,6 +63,6 @@ public class LongTimestampMillisConverter implements AvroTypeConverter {
 
     @Override
     public boolean canManage(Schema schema, Deque<String> deque) {
-        return LONG.equals(schema.getType()) && isLogicalType(schema, LogicalTypes.timestampMillis().getName());
+        return LONG.equals(schema.getType()) && isLogicalType(schema, LogicalTypes.timestampMicros().getName());
     }
 }

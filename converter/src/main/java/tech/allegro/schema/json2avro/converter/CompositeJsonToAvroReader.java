@@ -3,16 +3,7 @@ package tech.allegro.schema.json2avro.converter;
 import org.apache.avro.AvroTypeException;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
-import tech.allegro.schema.json2avro.converter.types.ArrayConverter;
-import tech.allegro.schema.json2avro.converter.types.BytesDecimalConverter;
-import tech.allegro.schema.json2avro.converter.types.EnumConverter;
-import tech.allegro.schema.json2avro.converter.types.LongTimestampMillisConverter;
-import tech.allegro.schema.json2avro.converter.types.MapConverter;
-import tech.allegro.schema.json2avro.converter.types.NullConverter;
-import tech.allegro.schema.json2avro.converter.types.PrimitiveConverter;
-import tech.allegro.schema.json2avro.converter.types.RecordConverter;
-import tech.allegro.schema.json2avro.converter.types.AvroTypeConverter;
-import tech.allegro.schema.json2avro.converter.types.UnionConverter;
+import tech.allegro.schema.json2avro.converter.types.*;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -21,7 +12,6 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public class CompositeJsonToAvroReader implements JsonToAvroReader {
     private final List<AvroTypeConverter> converters;
@@ -60,7 +50,11 @@ public class CompositeJsonToAvroReader implements JsonToAvroReader {
         this.converters = new ArrayList<>();
         this.converters.addAll(additionalConverters);
         this.converters.add(BytesDecimalConverter.INSTANCE);
+        this.converters.add(IntDateConverter.INSTANCE);
+        this.converters.add(IntTimeMillisConverter.INSTANCE);
+        this.converters.add(LongTimeMicrosConverter.INSTANCE);
         this.converters.add(LongTimestampMillisConverter.INSTANCE);
+        this.converters.add(LongTimestampMicrosConverter.INSTANCE);
         this.converters.add(PrimitiveConverter.BOOLEAN);
         this.converters.add(PrimitiveConverter.STRING);
         this.converters.add(PrimitiveConverter.INT);
