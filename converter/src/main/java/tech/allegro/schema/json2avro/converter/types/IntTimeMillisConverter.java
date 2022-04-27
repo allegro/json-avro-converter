@@ -3,35 +3,37 @@ package tech.allegro.schema.json2avro.converter.types;
 import org.apache.avro.LogicalType;
 import org.apache.avro.LogicalTypes;
 
-import java.time.Instant;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.concurrent.TimeUnit;
 
-public class LongTimestampMillisConverter extends AbstractLongDateTimeConverter {
-    public static final AvroTypeConverter INSTANCE = new LongTimestampMillisConverter(DateTimeFormatter.ISO_DATE_TIME);
+public class IntTimeMillisConverter extends AbstractIntDateTimeConverter {
+    public static final AvroTypeConverter INSTANCE = new IntTimeMillisConverter(DateTimeFormatter.ISO_TIME);
 
     private final DateTimeFormatter dateTimeFormatter;
 
-    public LongTimestampMillisConverter(DateTimeFormatter dateTimeFormatter) {
+    public IntTimeMillisConverter(DateTimeFormatter dateTimeFormatter) {
         this.dateTimeFormatter = dateTimeFormatter;
     }
 
     @Override
     protected Object parseDateTime(String dateTimeString) {
-        return Instant.from(dateTimeFormatter.parse(dateTimeString)).toEpochMilli();
+        long nanoOfDay = LocalTime.from(dateTimeFormatter.parse(dateTimeString)).toNanoOfDay();
+        return TimeUnit.NANOSECONDS.toMillis(nanoOfDay);
     }
 
     @Override
     protected LogicalType getLogicalType() {
-        return LogicalTypes.timestampMillis();
+        return LogicalTypes.timeMillis();
     }
 
     @Override
     protected String getValidStringFormat() {
-        return "date time";
+        return "time";
     }
 
     @Override
     protected String getValidNumberFormat() {
-        return "timestamp";
+        return "millis";
     }
 }
