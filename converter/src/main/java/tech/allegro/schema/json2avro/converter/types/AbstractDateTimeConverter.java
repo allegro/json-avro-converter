@@ -16,7 +16,7 @@ public abstract class AbstractDateTimeConverter implements AvroTypeConverter {
         if (jsonValue instanceof String) {
             String dateTimeString = (String) jsonValue;
             try {
-                return parseDateTime(dateTimeString);
+                return convertDateTimeString(dateTimeString);
             } catch (DateTimeParseException exception) {
                 if (silently) {
                     return new Incompatible(getValidJsonFormat());
@@ -25,7 +25,7 @@ public abstract class AbstractDateTimeConverter implements AvroTypeConverter {
                 }
             }
         } else if (jsonValue instanceof Number) {
-            return toTargetNumberFormat((Number) jsonValue);
+            return convertNumber((Number) jsonValue);
         }
 
         if (silently) {
@@ -40,9 +40,9 @@ public abstract class AbstractDateTimeConverter implements AvroTypeConverter {
         return getUnderlyingSchemaType().equals(schema.getType()) && AvroTypeConverter.isLogicalType(schema, getLogicalType().getName());
     }
 
-    protected abstract Object parseDateTime(String dateTimeString);
+    protected abstract Object convertDateTimeString(String dateTimeString);
 
-    protected abstract Object toTargetNumberFormat(Number numberValue);
+    protected abstract Object convertNumber(Number numberValue);
 
     protected abstract Schema.Type getUnderlyingSchemaType();
 

@@ -16,8 +16,12 @@ public class LongTimestampMillisConverter extends AbstractLongDateTimeConverter 
     }
 
     @Override
-    protected Object parseDateTime(String dateTimeString) {
-        return Instant.from(dateTimeFormatter.parse(dateTimeString)).toEpochMilli();
+    protected Object convertDateTimeString(String dateTimeString) {
+        return parseInstant(dateTimeString).toEpochMilli();
+    }
+
+    protected Instant parseInstant(String dateTimeString) {
+        return Instant.from(dateTimeFormatter.parse(dateTimeString));
     }
 
     @Override

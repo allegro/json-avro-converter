@@ -5,7 +5,7 @@ import org.apache.avro.Schema;
 public abstract class AbstractLongDateTimeConverter extends AbstractDateTimeConverter {
 
     @Override
-    protected Object toTargetNumberFormat(Number numberValue) {
+    protected Object convertNumber(Number numberValue) {
         return numberValue.longValue();
     }
 

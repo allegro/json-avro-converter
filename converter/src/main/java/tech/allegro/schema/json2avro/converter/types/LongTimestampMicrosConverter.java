@@ -16,8 +16,8 @@ public class LongTimestampMicrosConverter extends AbstractLongDateTimeConverter 
     }
 
     @Override
-    protected Object parseDateTime(String dateTimeString) {
-        Instant instant = Instant.from(dateTimeFormatter.parse(dateTimeString));
+    protected Object convertDateTimeString(String dateTimeString) {
+        Instant instant = parseInstant(dateTimeString);
         // based on org.apache.avro.data.TimestampMicrosConversion
         long seconds = instant.getEpochSecond();
         int nanos = instant.getNano();
@@ -32,6 +32,10 @@ public class LongTimestampMicrosConverter extends AbstractLongDateTimeConverter 
 
             return Math.addExact(micros, nanos / 1_000);
         }
+    }
+
+    protected Instant parseInstant(String dateTimeString) {
+        return Instant.from(dateTimeFormatter.parse(dateTimeString));
     }
 
     @Override

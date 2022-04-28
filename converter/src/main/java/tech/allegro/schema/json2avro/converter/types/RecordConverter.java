@@ -1,6 +1,7 @@
 package tech.allegro.schema.json2avro.converter.types;
 
 import org.apache.avro.Schema;
+import org.apache.avro.data.RecordBuilderBase;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecordBuilder;
 import tech.allegro.schema.json2avro.converter.PathsPrinter;
@@ -23,16 +24,25 @@ public class RecordConverter extends AvroTypeConverterWithStrictJavaTypeCheck<Ma
     @SuppressWarnings("unchecked")
     @Override
     public Object convertValue(Schema.Field field, Schema schema, Map jsonValue, Deque<String> path, boolean silently) {
-        GenericRecordBuilder record = new GenericRecordBuilder(schema);
+        RecordBuilderBase<GenericData.Record> builder = createRecordBuilder(schema);
         ((Map<String, Object>)jsonValue).forEach((key, value) -> {
             Schema.Field subField = schema.getField(key);
             if (subField != null) {
-                record.set(subField, this.jsonToAvroReader.read(subField, subField.schema(), value, path, false));
+                Object fieldValue = this.jsonToAvroReader.read(subField, subField.schema(), value, path, false);
+                setField(builder, subField, fieldValue);
             } else if (unknownFieldListener != null) {
                 unknownFieldListener.onUnknownField(key, value, PathsPrinter.print(path, key));
             }
         });
-        return record.build();
+        return builder.build();
+    }
+
+    protected RecordBuilderBase<GenericData.Record> createRecordBuilder(Schema schema) {
+        return new GenericRecordBuilder(schema);
+    }
+
+    protected void setField(RecordBuilderBase<GenericData.Record> builder, Schema.Field subField, Object fieldValue) {
+        ((GenericRecordBuilder) builder).set(subField, fieldValue);
     }
 
     @Override
