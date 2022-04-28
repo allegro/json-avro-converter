@@ -58,6 +58,21 @@ class BytesDecimalConverterSpec extends BaseConverterSpec {
         new BigDecimal("123.45600") == new BigDecimal(new BigInteger(((ByteBuffer) record.get("byteDecimal")).array()), 5)
     }
 
+    def "should convert json numeric to avro decimal with higher scale"() {
+        given:
+        def json = '''
+        {
+            "byteDecimal": 123.456789
+        }
+        '''
+
+        when:
+        GenericData.Record record = converter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
+
+        then:
+        new BigDecimal("123.45678") == new BigDecimal(new BigInteger(((ByteBuffer) record.get("byteDecimal")).array()), 5)
+    }
+
     def "should convert json string to avro decimal"() {
         given:
         def json = '''

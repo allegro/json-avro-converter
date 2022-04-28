@@ -4,6 +4,7 @@ import org.apache.avro.AvroTypeException;
 import org.apache.avro.Schema;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.ByteBuffer;
 import java.util.Deque;
 
@@ -19,10 +20,9 @@ public class BytesDecimalConverter implements AvroTypeConverter {
 
     @Override
     public Object convert(Schema.Field field, Schema schema, Object value, Deque<String> path, boolean silently) {
-        int scale = (int) schema.getObjectProp("scale");
         try {
-            BigDecimal bigDecimal = bigDecimalWithExpectedScale(value.toString(), scale);
-            return ByteBuffer.wrap(bigDecimal.unscaledValue().toByteArray());
+            int scale = (int) schema.getObjectProp("scale");
+            return convertDecimal(value, scale);
         } catch (NumberFormatException exception) {
             if (silently) {
                 return new Incompatible("string number, decimal");
@@ -32,6 +32,11 @@ public class BytesDecimalConverter implements AvroTypeConverter {
         }
     }
 
+    protected Object convertDecimal(Object value, int scale) {
+        BigDecimal bigDecimal = bigDecimalWithExpectedScale(value.toString(), scale);
+        return ByteBuffer.wrap(bigDecimal.unscaledValue().toByteArray());
+    }
+
     @Override
     public boolean canManage(Schema schema, Deque<String> deque) {
         return BYTES.equals(schema.getType())
@@ -39,9 +44,8 @@ public class BytesDecimalConverter implements AvroTypeConverter {
                 && schema.getObjectProp("scale") != null;
     }
 
-    private BigDecimal bigDecimalWithExpectedScale(String decimal, int scale) {
+    protected BigDecimal bigDecimalWithExpectedScale(String decimal, int scale) {
         BigDecimal bigDecimalInput = new BigDecimal(decimal);
-        return bigDecimalInput
-                .multiply(BigDecimal.TEN.pow(scale - bigDecimalInput.scale()));
+        return bigDecimalInput.setScale(scale, RoundingMode.DOWN);
     }
 }
