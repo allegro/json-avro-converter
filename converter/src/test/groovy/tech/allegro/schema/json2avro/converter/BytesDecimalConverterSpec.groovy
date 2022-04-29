@@ -1,8 +1,11 @@
 package tech.allegro.schema.json2avro.converter
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
+import tech.allegro.schema.json2avro.converter.types.BytesDecimalConverter
 
+import java.math.RoundingMode
 import java.nio.ByteBuffer
 
 class BytesDecimalConverterSpec extends BaseConverterSpec {
@@ -58,7 +61,7 @@ class BytesDecimalConverterSpec extends BaseConverterSpec {
         new BigDecimal("123.45600") == new BigDecimal(new BigInteger(((ByteBuffer) record.get("byteDecimal")).array()), 5)
     }
 
-    def "should convert json numeric to avro decimal with higher scale"() {
+    def "should throw Exception for json numeric with higher scale than expected"() {
         given:
         def json = '''
         {
@@ -67,7 +70,33 @@ class BytesDecimalConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        GenericData.Record record = converter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
+        converter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
+
+        then:
+        def e = thrown AvroConversionException
+        e.message == "Failed to convert JSON to Avro: Field byteDecimal is expected to be a number with scale up to 5. current value: 123.456789 is number with scale 6."
+    }
+
+    def "should be able to use rounding during conversion of numeric with higher scale than expected"() {
+        given:
+        def json = '''
+        {
+            "byteDecimal": 123.456789
+        }
+        '''
+        def roundingConverter = new BytesDecimalConverter() {
+            @Override
+            protected BigDecimal bigDecimalWithExpectedScale(String decimal, int scale, Deque<String> path) {
+                BigDecimal bigDecimalInput = new BigDecimal(decimal);
+                return bigDecimalInput.setScale(scale, RoundingMode.DOWN);
+            }
+        }
+        def converterWithRoundingDecimalConverter = new JsonAvroConverter(new ObjectMapper(),
+                new CompositeJsonToAvroReader(Collections.singletonList(roundingConverter),
+                        {name, value, path -> println "Unknown field $path with value $value"}))
+
+        when:
+        GenericData.Record record = converterWithRoundingDecimalConverter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
 
         then:
         new BigDecimal("123.45678") == new BigDecimal(new BigInteger(((ByteBuffer) record.get("byteDecimal")).array()), 5)

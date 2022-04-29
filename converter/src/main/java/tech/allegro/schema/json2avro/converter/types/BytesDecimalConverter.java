@@ -14,15 +14,14 @@ import static tech.allegro.schema.json2avro.converter.PathsPrinter.print;
 public class BytesDecimalConverter implements AvroTypeConverter {
     public static final AvroTypeConverter INSTANCE = new BytesDecimalConverter();
 
-    private BytesDecimalConverter() {
-
+    public BytesDecimalConverter() {
     }
 
     @Override
     public Object convert(Schema.Field field, Schema schema, Object value, Deque<String> path, boolean silently) {
         try {
             int scale = (int) schema.getObjectProp("scale");
-            return convertDecimal(value, scale);
+            return convertDecimal(value, scale, path);
         } catch (NumberFormatException exception) {
             if (silently) {
                 return new Incompatible("string number, decimal");
@@ -32,9 +31,19 @@ public class BytesDecimalConverter implements AvroTypeConverter {
         }
     }
 
-    protected Object convertDecimal(Object value, int scale) {
-        BigDecimal bigDecimal = bigDecimalWithExpectedScale(value.toString(), scale);
+    protected Object convertDecimal(Object value, int scale, Deque<String> path) {
+        BigDecimal bigDecimal = bigDecimalWithExpectedScale(value.toString(), scale, path);
         return ByteBuffer.wrap(bigDecimal.unscaledValue().toByteArray());
+    }
+
+    protected BigDecimal bigDecimalWithExpectedScale(String decimal, int scale, Deque<String> path) {
+        BigDecimal bigDecimalInput = new BigDecimal(decimal);
+        if (bigDecimalInput.scale() <= scale) {
+            return bigDecimalInput.setScale(scale, RoundingMode.UNNECESSARY);
+        } else {
+            throw new AvroTypeException("Field " + print(path) + " is expected to be a number with scale up to " +
+                    scale + ". current value: " + bigDecimalInput + " is number with scale " + bigDecimalInput.scale() + ".");
+        }
     }
 
     @Override
@@ -42,10 +51,5 @@ public class BytesDecimalConverter implements AvroTypeConverter {
         return BYTES.equals(schema.getType())
                 && AvroTypeConverter.isLogicalType(schema, "decimal")
                 && schema.getObjectProp("scale") != null;
-    }
-
-    protected BigDecimal bigDecimalWithExpectedScale(String decimal, int scale) {
-        BigDecimal bigDecimalInput = new BigDecimal(decimal);
-        return bigDecimalInput.setScale(scale, RoundingMode.DOWN);
     }
 }
