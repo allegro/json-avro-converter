@@ -7,6 +7,37 @@
       "fields": [
         {
           "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "active",
+          "type": "boolean"
+        },
+        {
+          "name": "age",
+          "type": "int"
+        }
+      ]
+    },
+    "jsonObject": {
+      "username": "airbyte_developer",
+      "active": true,
+      "age": 150
+    },
+    "avroObject": {
+      "username": "airbyte_developer",
+      "active": true,
+      "age": 150
+    }
+  },
+  {
+    "testCase": "nullable_schema",
+    "avroSchema": {
+      "type": "record",
+      "name": "test_schema",
+      "fields": [
+        {
+          "name": "username",
           "type": [
             "null",
             "string"

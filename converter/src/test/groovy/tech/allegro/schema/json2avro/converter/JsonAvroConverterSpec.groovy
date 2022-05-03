@@ -122,7 +122,7 @@ class JsonAvroConverterSpec extends Specification {
 
         then:
         def e = thrown AvroConversionException
-        e.message == "Failed to convert JSON to Avro: Field field_integer is expected to be type: java.lang.Number"
+        e.message == "Failed to convert JSON to Avro: Field field_integer is expected to be type: java.lang.Number, but it is: foobar"
     }
 
     def "should ignore unknown fields"() {

@@ -1,6 +1,25 @@
 package tech.allegro.schema.json2avro.converter;
 
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
+import static tech.allegro.schema.json2avro.converter.AdditionalPropertyField.DEFAULT_AVRO_FIELD_NAME;
+import static tech.allegro.schema.json2avro.converter.AdditionalPropertyField.DEFAULT_JSON_FIELD_NAMES;
+import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.enumException;
+import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.typeException;
+import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.unionException;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayDeque;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.AvroTypeException;
@@ -12,25 +31,6 @@ import org.apache.avro.Schema.Type;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecordBuilder;
 import tech.allegro.schema.json2avro.converter.util.DateTimeUtils;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
-import static tech.allegro.schema.json2avro.converter.AdditionalPropertyField.DEFAULT_AVRO_FIELD_NAME;
-import static tech.allegro.schema.json2avro.converter.AdditionalPropertyField.DEFAULT_JSON_FIELD_NAMES;
-import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.enumException;
-import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.typeException;
-import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.unionException;
 
 public class JsonGenericRecordReader {
 
@@ -254,11 +254,16 @@ public class JsonGenericRecordReader {
     private List<Object> readArray(Schema.Field field, Schema schema, List<Object> items, Deque<String> path) {
         // When all array elements are supposed to be null or string, we enforce array values to be string.
         // This is to properly handle Json arrays that do not follow the schema.
-        Set<Type> nonNullElementTypes = schema.getElementType()
-            .getTypes().stream()
-            .map(Schema::getType)
-            .filter(t -> t != Type.NULL)
-            .collect(Collectors.toSet());
+        Set<Type> nonNullElementTypes;
+        if (schema.getElementType().isUnion()) {
+            nonNullElementTypes = schema.getElementType()
+                .getTypes().stream()
+                .map(Schema::getType)
+                .filter(t -> t != Type.NULL)
+                .collect(Collectors.toSet());
+        } else {
+            nonNullElementTypes = Collections.singleton(schema.getElementType().getType());
+        }
         boolean enforceString = nonNullElementTypes.size() == 1 && nonNullElementTypes.contains(Type.STRING);
         return items.stream()
             .map(item -> read(field, schema.getElementType(), item, path, false, enforceString))
