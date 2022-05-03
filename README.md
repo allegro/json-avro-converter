@@ -1,8 +1,35 @@
 # json-avro-converter
 
-[![Java CI](https://github.com/airbytehq/json-avro-converter/actions/workflows/java_ci.yaml/badge.svg)](https://github.com/airbytehq/json-avro-converter/actions/workflows/java_ci.yaml)
+[![Java CI](https://github.com/airbytehq/json-avro-converter/actions/workflows/java_ci.yaml/badge.svg)](https://github.com/airbytehq/json-avro-converter/actions/workflows/java_ci.yaml) [![JitPack](https://jitpack.io/v/airbytehq/json-avro-converter.svg)](https://jitpack.io/#airbytehq/json-avro-converter)
 
 This is a Json to Avro object converter used by Airbyte. It is based on [json-avro-converter](https://github.com/allegro/json-avro-converter) from [Allegro Tech](https://github.com/allegro). For basic usage, see the README in the original repo.
+
+## Install
+This library is available on JitPack. Check [here](https://jitpack.io/#airbytehq/json-avro-converter) for details.
+
+1. Add the JitPack repository to the root `build.gradle`:
+  ```groovy
+  allprojects {
+    repositories {
+      maven { url 'https://jitpack.io' }
+    }
+  }
+  ```
+2. Add the dependency
+  ```groovy
+  dependencies {
+    implementation 'com.github.airbytehq:json-avro-converter:<version>'
+  }
+  ```
+
+## Publish
+To publish a new version, tag the desired commit with a new version label.
+
+```bash
+VERSION=1.0.0
+git tag -a "${VERSION}" -m "Version ${VERSION}"
+git push origin "${VERSION}"
+```
 
 ## Airbyte Specific Features
 

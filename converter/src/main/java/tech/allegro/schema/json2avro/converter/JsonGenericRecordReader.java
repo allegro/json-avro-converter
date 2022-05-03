@@ -289,7 +289,8 @@ public class JsonGenericRecordReader {
         throw unionException(
                 field.name(),
                 types.stream().map(Schema::getType).map(Object::toString).collect(joining(", ")),
-                path);
+                path,
+                value);
     }
 
     private Object ensureEnum(Schema schema, Object value, Deque<String> path) {
@@ -297,7 +298,7 @@ public class JsonGenericRecordReader {
         if (symbols.contains(value)) {
             return new GenericData.EnumSymbol(schema, value);
         }
-        throw enumException(path, symbols.stream().map(String::valueOf).collect(joining(", ")));
+        throw enumException(path, symbols.stream().map(String::valueOf).collect(joining(", ")), value);
     }
 
     private ByteBuffer bytesForString(String string) {
@@ -315,7 +316,7 @@ public class JsonGenericRecordReader {
             if (silently) {
                 return INCOMPATIBLE;
             } else {
-                throw typeException(path, type.getTypeName());
+                throw typeException(path, type.getTypeName(), value);
             }
         }
     }
