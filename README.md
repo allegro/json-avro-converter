@@ -241,3 +241,10 @@ By default, both `_ab_additional_properties` and `_airbyte_additional_properties
 ## License
 
 The original [json-avro-converter](https://github.com/allegro/json-avro-converter) is published under [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0).
+
+## CHANGELOG
+
+| Version | Description |
+| ------- | ----------- |
+| 1.0.1   | Fix publication to JitPack. |
+| 1.0.0   | Publish to JitPack. |
