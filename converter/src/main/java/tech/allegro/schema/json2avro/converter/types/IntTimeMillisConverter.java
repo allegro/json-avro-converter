@@ -17,9 +17,13 @@ public class IntTimeMillisConverter extends AbstractIntDateTimeConverter {
     }
 
     @Override
-    protected Object parseDateTime(String dateTimeString) {
-        long nanoOfDay = LocalTime.from(dateTimeFormatter.parse(dateTimeString)).toNanoOfDay();
+    protected Object convertDateTimeString(String dateTimeString) {
+        long nanoOfDay = parseLocalTime(dateTimeString).toNanoOfDay();
         return TimeUnit.NANOSECONDS.toMillis(nanoOfDay);
+    }
+
+    protected LocalTime parseLocalTime(String dateTimeString) {
+        return LocalTime.from(dateTimeFormatter.parse(dateTimeString));
     }
 
     @Override

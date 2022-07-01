@@ -59,7 +59,7 @@ public class CompositeJsonToAvroReader implements JsonToAvroReader {
      * @param unknownFieldListener the listener to customize unknown field error management
      */
     public CompositeJsonToAvroReader(List<AvroTypeConverter> additionalConverters, UnknownFieldListener unknownFieldListener) {
-        this.mainRecordConverter = new RecordConverter(this, unknownFieldListener);
+        this.mainRecordConverter = createMainConverter(unknownFieldListener);
         this.converters = new ArrayList<>();
         this.converters.addAll(additionalConverters);
         this.converters.add(BytesDecimalConverter.INSTANCE);
@@ -81,6 +81,10 @@ public class CompositeJsonToAvroReader implements JsonToAvroReader {
         this.converters.add(new ArrayConverter(this));
         this.converters.add(new MapConverter(this));
         this.converters.add(new UnionConverter(this));
+    }
+
+    protected AvroTypeConverter createMainConverter(UnknownFieldListener unknownFieldListener) {
+        return new RecordConverter(this, unknownFieldListener);
     }
 
     @Override

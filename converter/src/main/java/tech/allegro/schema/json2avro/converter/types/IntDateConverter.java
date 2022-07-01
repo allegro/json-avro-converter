@@ -16,8 +16,12 @@ public class IntDateConverter extends AbstractIntDateTimeConverter {
     }
 
     @Override
-    protected Object parseDateTime(String dateTimeString) {
-        return LocalDate.from(dateTimeFormatter.parse(dateTimeString)).toEpochDay();
+    protected Object convertDateTimeString(String dateTimeString) {
+        return parseLocalDate(dateTimeString).toEpochDay();
+    }
+
+    protected LocalDate parseLocalDate(String dateTimeString) {
+        return LocalDate.from(dateTimeFormatter.parse(dateTimeString));
     }
 
     @Override
