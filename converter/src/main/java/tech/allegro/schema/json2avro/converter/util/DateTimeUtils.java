@@ -11,27 +11,27 @@ import java.time.format.DateTimeParseException;
 
 public class DateTimeUtils {
 
-    private static final DateTimeFormatter formatter =
-            DateTimeFormatter.ofPattern("[yyyy][yy]['-']['/']['.'][' '][MMM][MM][M]['-']['/']['.'][' '][dd][d]" +
-                    "[[' ']['T']HH:mm[':'ss[.][SSSSSS][SSSSS][SSSS][SSS][' '][z][zzz][Z][O][x][XXX][XX][X]]]");
-    private static final DateTimeFormatter timeFormatter =
-            DateTimeFormatter.ofPattern("HH:mm[':'ss[.][SSSSSS][SSSSS][SSSS][SSS]]");
+    private static final DateTimeFormatter DATE_TIME_FORMATTER =
+            DateTimeFormatter.ofPattern("[yyyy][yy]['-']['/']['.'][' '][MMM][MM][M]['-']['/']['.'][' '][dd][d][[' '][G]][[' ']['T']HH:mm[':'ss[.][SSSSSS][SSSSS][SSSS][SSS][' '][z][zzz][Z][O][x][XXX][XX][X][[' '][G]]]]");
+    private static final DateTimeFormatter TIME_FORMATTER =
+            DateTimeFormatter.ofPattern("HH:mm[':'ss[.][SSSSSS][SSSSS][SSSS][SSS][' '][z][zzz][Z][O][x][XXX][XX][X]]");
 
     /**
      * Parse the Json date-time logical type to an Avro long value.
      * @return the number of microseconds from the unix epoch, 1 January 1970 00:00:00.000000 UTC.
      */
     public static Long getEpochMicros(String jsonDateTime) {
+        jsonDateTime = cleanLineBreaks(jsonDateTime);
         Instant instant = null;
         if (jsonDateTime.matches("-?\\d+")) {
             return Long.valueOf(jsonDateTime);
         }
         try {
-            ZonedDateTime zdt = ZonedDateTime.parse(jsonDateTime, formatter);
+            ZonedDateTime zdt = ZonedDateTime.parse(jsonDateTime, DATE_TIME_FORMATTER);
             instant = zdt.toInstant();
         } catch (DateTimeParseException e) {
             try {
-                LocalDateTime dt = LocalDateTime.parse(jsonDateTime, formatter);
+                LocalDateTime dt = LocalDateTime.parse(jsonDateTime, DATE_TIME_FORMATTER);
                 instant = dt.toInstant(ZoneOffset.UTC);
             } catch (DateTimeParseException ex) {
                 // no logging since it may generate too much noise
@@ -45,9 +45,10 @@ public class DateTimeUtils {
      * @return the number of days from the unix epoch, 1 January 1970 (ISO calendar).
      */
     public static Integer getEpochDay(String jsonDate) {
+        jsonDate = cleanLineBreaks(jsonDate);
         Integer epochDay = null;
         try {
-            LocalDate date = LocalDate.parse(jsonDate, formatter);
+            LocalDate date = LocalDate.parse(jsonDate, DATE_TIME_FORMATTER);
             epochDay = (int) date.toEpochDay();
         } catch (DateTimeParseException e) {
             // no logging since it may generate too much noise
@@ -60,21 +61,26 @@ public class DateTimeUtils {
      * @return the number of microseconds after midnight, 00:00:00.000000.
      */
     public static Long getMicroSeconds(String jsonTime) {
+        jsonTime = cleanLineBreaks(jsonTime);
         Long nanoOfDay = null;
         if (jsonTime.matches("-?\\d+")) {
             return Long.valueOf(jsonTime);
         }
         try {
-            LocalTime time = LocalTime.parse(jsonTime, timeFormatter);
+            LocalTime time = LocalTime.parse(jsonTime, TIME_FORMATTER);
             nanoOfDay = time.toNanoOfDay();
         } catch (DateTimeParseException e) {
             try {
-                LocalTime time = LocalTime.parse(jsonTime, formatter);
+                LocalTime time = LocalTime.parse(jsonTime, DATE_TIME_FORMATTER);
                 nanoOfDay = time.toNanoOfDay();
             } catch (DateTimeParseException ex) {
                 // no logging since it may generate too much noise
             }
         }
         return nanoOfDay == null ? null : nanoOfDay / 1000;
+    }
+
+    private static String cleanLineBreaks(String jsonDateTime) {
+        return jsonDateTime.replace("\n", "").replace("\r", "");
     }
 }

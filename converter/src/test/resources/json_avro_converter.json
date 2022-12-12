@@ -74,6 +74,73 @@
     }
   },
   {
+    "testCase": "numbers_schema",
+    "avroSchema": {
+      "type": "record",
+      "name": "test_schema",
+      "fields": [
+        {
+          "name": "int_string_field",
+          "type": "int"
+        },
+        {
+          "name": "int_field",
+          "type": "int"
+        },
+        {
+          "name": "long_string_field",
+          "type": "long"
+        },
+        {
+          "name": "long_field",
+          "type": "long"
+        },
+        {
+          "name": "double_string_field",
+          "type": "double"
+        },
+        {
+          "name": "double_field",
+          "type": "double"
+        },
+        {
+          "name": "double_infinity",
+          "type": "double"
+        },
+        {
+          "name": "double_infinity_negative",
+          "type": "double"
+        },
+        {
+          "name": "double_nan",
+          "type": "double"
+        }
+      ]
+    },
+    "jsonObject": {
+      "int_string_field": "100",
+      "int_field": 100,
+      "long_string_field": "1000000000",
+      "long_field": 1000000000,
+      "double_string_field": "100.2",
+      "double_field": 100.2,
+      "double_infinity": "Infinity",
+      "double_infinity_negative": "-Infinity",
+      "double_nan": "NaN"
+    },
+    "avroObject": {
+      "int_string_field" : 100,
+      "int_field": 100,
+      "long_string_field": 1000000000,
+      "long_field": 1000000000,
+      "double_string_field": 100.2,
+      "double_field": 100.2,
+      "double_infinity": "Infinity",
+      "double_infinity_negative": "-Infinity",
+      "double_nan": "NaN"
+    }
+  },
+  {
     "testCase": "not_expecting_extra_fields",
     "avroSchema": {
       "type": "record",
@@ -716,6 +783,32 @@
     },
     "avroObject": {
       "array_field": [101, "102", true, false, null]
+    }
+  },
+  {
+    "testCase": "typed_array_string_number_plus_text",
+    "avroSchema": {
+      "type": "record",
+      "name": "typed_array",
+      "fields": [
+        {
+          "name": "array_field",
+          "type": [
+            "null",
+            {
+              "type": "array",
+              "items": ["null", "int", "string", "boolean"]
+            }
+          ],
+          "default": null
+        }
+      ]
+    },
+    "jsonObject": {
+      "array_field": ["101", "102", "text", true, false, null]
+    },
+    "avroObject": {
+      "array_field": [101, 102, "text", true, false, null]
     }
   },
   {

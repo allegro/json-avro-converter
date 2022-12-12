@@ -5,6 +5,7 @@ import static java.util.stream.Collectors.toList;
 import static tech.allegro.schema.json2avro.converter.AdditionalPropertyField.DEFAULT_AVRO_FIELD_NAME;
 import static tech.allegro.schema.json2avro.converter.AdditionalPropertyField.DEFAULT_JSON_FIELD_NAMES;
 import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.enumException;
+import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.numberFormatException;
 import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.typeException;
 import static tech.allegro.schema.json2avro.converter.AvroTypeExceptions.unionException;
 
@@ -31,6 +32,7 @@ import org.apache.avro.Schema.Type;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecordBuilder;
 import tech.allegro.schema.json2avro.converter.util.DateTimeUtils;
+import tech.allegro.schema.json2avro.converter.util.StringUtil;
 
 public class JsonGenericRecordReader {
 
@@ -201,7 +203,9 @@ public class JsonGenericRecordReader {
                 if (logicalType != null && logicalType.equals(LogicalTypes.date())) {
                     result = onValidType(value, String.class, path, silently, DateTimeUtils::getEpochDay);
                 } else {
-                    result = onValidNumber(value, path, silently, Number::intValue);
+                    result = value instanceof String valueString? // implicit cast to String
+                        onValidStringNumber(valueString, path, silently, Integer::parseInt) :
+                        onValidNumber(value, path, silently, Number::intValue);
                 }
                 break;
             case LONG:
@@ -213,14 +217,20 @@ public class JsonGenericRecordReader {
                 } else if (logicalType != null && logicalType.equals(LogicalTypes.timeMicros())) {
                     result = onValidType(value, String.class, path, silently, DateTimeUtils::getMicroSeconds);
                 } else {
-                    result = onValidNumber(value, path, silently, Number::longValue);
+                    result = value instanceof String stringValue ? // implicit cast to String
+                        onValidStringNumber(stringValue, path, silently, Long::parseLong) :
+                        onValidNumber(value, path, silently, Number::longValue);
                 }
                 break;
             case FLOAT:
-                result = onValidNumber(value, path, silently, Number::floatValue);
+                result = value instanceof String stringValue ? // implicit cast to String
+                    onValidStringNumber(stringValue, path, silently, Float::parseFloat) :
+                    onValidNumber(value, path, silently, Number::floatValue);
                 break;
             case DOUBLE:
-                result = onValidNumber(value, path, silently, Number::doubleValue);
+                result = value instanceof String stringValue ? // implicit cast to String
+                    onValidStringNumber(stringValue, path, silently, Double::parseDouble) :
+                    onValidNumber(value, path, silently, Number::doubleValue);
                 break;
             case BOOLEAN:
                 result = onValidType(value, Boolean.class, path, silently, bool -> bool);
@@ -236,7 +246,7 @@ public class JsonGenericRecordReader {
                 }
                 break;
             case BYTES:
-                result = onValidType(value, String.class, path, silently, string -> bytesForString(string));
+                result = onValidType(value, String.class, path, silently, this::bytesForString);
                 break;
             case NULL:
                 result = value == null ? value : INCOMPATIBLE;
@@ -307,9 +317,17 @@ public class JsonGenericRecordReader {
     }
 
     private ByteBuffer bytesForString(String string) {
+        if (StringUtil.isBase64(string)) {
+            return ByteBuffer.wrap(StringUtil.decodeBase64(string).getBytes(StandardCharsets.UTF_8));
+        }
         return ByteBuffer.wrap(string.getBytes(StandardCharsets.UTF_8));
     }
 
+    /**
+     * converted value based on passed function
+     *
+     * @throws AvroTypeException if type class != value class
+     */
     @SuppressWarnings("unchecked")
     public <T> Object onValidType(Object value, Class<T> type, Deque<String> path, boolean silently, Function<T, Object> function)
             throws AvroTypeException {
@@ -318,15 +336,32 @@ public class JsonGenericRecordReader {
             Object result = function.apply((T) value);
             return result == null ? INCOMPATIBLE : result;
         } else {
-            if (silently) {
-                return INCOMPATIBLE;
-            } else {
-                throw typeException(path, type.getTypeName(), value);
-            }
+            return processException(silently, typeException(path, type.getTypeName(), value));
+        }
+    }
+
+    /**
+     * tries to convert string value numbers
+     *
+     * @throws AvroTypeException if value is not numeric
+     */
+    public Object onValidStringNumber(String value, Deque<String> path, boolean silently, Function<String, Object> function)
+        throws AvroTypeException {
+        try {
+            return onValidType(value, String.class, path, silently, function);
+        } catch (NumberFormatException nfe) {
+            return processException(silently, numberFormatException(path, value));
         }
     }
 
     public Object onValidNumber(Object value, Deque<String> path, boolean silently, Function<Number, Object> function) {
         return onValidType(value, Number.class, path, silently, function);
     }
+
+    private Object processException(boolean silently, AvroTypeException ex) throws AvroTypeException {
+        if (silently) {
+            return INCOMPATIBLE;
+        } else  {throw ex;}
+    }
+
 }

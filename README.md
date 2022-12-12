@@ -245,6 +245,7 @@ The original [json-avro-converter](https://github.com/allegro/json-avro-converte
 ## CHANGELOG
 
 | Version | Description |
-| ------- | ----------- |
+|---------| ----------- |
+| 1.0.2   | Support era and string numbers |
 | 1.0.1   | Fix publication to JitPack. |
 | 1.0.0   | Publish to JitPack. |

@@ -37,16 +37,25 @@ public class DateTimeUtilsTest {
         assertEquals(1609462861000000L, getEpochMicros("2021-01-01T01:01:01+0000"));
         assertEquals(1609462861000000L, getEpochMicros("2021-01-01T01:01:01UTC"));
         assertEquals(1609459261000000L, getEpochMicros("2021-01-01T01:01:01+01"));
+        assertEquals(-125941863974322000L, getEpochMicros("2022-01-23T01:23:45.678-11:30 BC"));
+        assertEquals(1642942425678000L, getEpochMicros("2022-01-23T01:23:45.678-11:30"));
 
         assertEquals(18628, getEpochDay("2021-1-1"));
         assertEquals(18628, getEpochDay("2021-01-01"));
         assertEquals(18629, getEpochDay("2021/01/02"));
         assertEquals(18630, getEpochDay("2021.01.03"));
         assertEquals(18631, getEpochDay("2021 Jan 04"));
+        assertEquals(-1457318, getEpochDay("2021-1-1 BC"));
 
         assertEquals(3661000000L, getMicroSeconds("01:01:01"));
         assertEquals(3660000000L, getMicroSeconds("01:01"));
         assertEquals(44581541000L, getMicroSeconds("12:23:01.541"));
         assertEquals(44581541214L, getMicroSeconds("12:23:01.541214"));
+    }
+
+    @Test
+    public void cleaNLineBreaksTest() {
+        assertEquals(1585612800000000L, getEpochMicros("2020-03-\n31T00:00:00Z\r"));
+        assertEquals(18628, getEpochDay("2021-\n1-1\r"));
     }
 }
