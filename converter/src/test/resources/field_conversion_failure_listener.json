@@ -1,0 +1,238 @@
+{
+  "avroSchema": {
+    "type": "record",
+    "name": "message",
+    "fields": [
+      {
+        "name": "META",
+        "type": {
+          "type": "record",
+          "name": "meta",
+          "fields": [
+            {
+              "name": "CHANGES",
+              "type": {
+                "type": "array",
+                "items": [
+                  {
+                    "type": "record",
+                    "name": "change",
+                    "fields": [
+                      {
+                        "name": "FIELD",
+                        "type": "string"
+                      },
+                      {
+                        "name": "CHANGE",
+                        "type": "string"
+                      },
+                      {
+                        "name": "REASON",
+                        "type": "string"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "DATA",
+        "type": {
+          "type": "record",
+          "name": "data",
+          "fields": [
+            {
+              "name": "NAME",
+              "type": [
+                "null",
+                "string"
+              ],
+              "default": null
+            },
+            {
+              "name": "ID",
+              "type": [
+                "null",
+                "int"
+              ],
+              "default": null
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "testCases": [
+    {
+      "name": "no bad records, some existing changes",
+      "records": [
+        {
+          "meta": {
+            "changes": [
+              {
+                "field": "name",
+                "change": "TRUNCATED",
+                "reason": "name was ridiculously long"
+              }
+            ]
+          },
+          "data": {
+            "name": "Bob",
+            "id": 1
+          }
+        },
+        {
+          "meta": {
+            "changes": []
+          },
+          "data": {
+            "name": "Alice",
+            "id": 2
+          }
+        }
+      ],
+      "expectedOutput": [
+        {
+          "META": {
+            "CHANGES": [
+              {
+                "FIELD": "name",
+                "CHANGE": "TRUNCATED",
+                "REASON": "name was ridiculously long"
+              }
+            ]
+          },
+          "DATA": {
+            "NAME": "Bob",
+            "ID": 1
+          }
+        },
+        {
+          "META": {
+            "CHANGES": []
+          },
+          "DATA": {
+            "NAME": "Alice",
+            "ID": 2
+          }
+        }
+      ]
+    },
+    {
+      "name": "bad record with empty changes",
+      "records": [
+        {
+          "meta": {
+            "changes": []
+          },
+          "data": {
+            "name": [
+              "B",
+              "o",
+              "b"
+            ],
+            "id": 1
+          }
+        },
+        {
+          "meta": {
+            "changes": []
+          },
+          "data": {
+            "name": "Alice",
+            "id": 2
+          }
+        }
+      ],
+      "expectedOutput": [
+          {
+              "META": {
+                  "CHANGES": [
+                      {
+                          "FIELD": "name",
+                          "CHANGE": "NULLED",
+                          "REASON": "Could not evaluate union, field NAME is expected to be one of these: NULL, STRING. If this is a complex type, check if offending field (path: DATA.NAME) adheres to schema: [B, o, b]"
+                      }
+                  ]
+              },
+              "DATA": {
+                  "NAME": null,
+                  "ID": 1
+              }
+          },
+          {
+              "META": {
+                  "CHANGES": []
+              },
+              "DATA": {
+                  "NAME": "Alice",
+                  "ID": 2
+              }
+          }
+        ]
+    },
+    {
+      "name": "bad record with existing changes",
+        "records": [
+          {
+            "meta": {
+              "changes": [
+                {
+                  "field": "id",
+                  "change": "CONVERTED",
+                  "reason": "was string"
+                }
+              ]
+            },
+            "data": {
+              "name": 808,
+              "id": 2
+            }
+          },
+          {
+            "meta": {
+              "changes": []
+            },
+            "data": {
+              "name": "Alice",
+              "id": 2
+            }
+          }
+        ],
+        "expectedOutput": [
+            {
+                "META": {
+                    "CHANGES": [
+                        {
+                            "FIELD": "id",
+                            "CHANGE": "CONVERTED",
+                            "REASON": "was string"
+                        },
+                        {
+                            "FIELD": "name",
+                            "CHANGE": "NULLED",
+                            "REASON": "Could not evaluate union, field NAME is expected to be one of these: NULL, STRING. If this is a complex type, check if offending field (path: DATA.NAME) adheres to schema: 808"
+                        }
+                    ]
+                },
+                "DATA": {
+                    "NAME": null,
+                    "ID": 2
+                }
+            },
+            {
+                "META": {
+                    "CHANGES": []
+                },
+                "DATA": {
+                    "NAME": "Alice",
+                    "ID": 2
+                }
+            }
+        ]
+    }
+  ]
+}

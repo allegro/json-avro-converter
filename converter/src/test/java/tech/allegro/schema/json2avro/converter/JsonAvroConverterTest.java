@@ -1,6 +1,8 @@
 package tech.allegro.schema.json2avro.converter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static tech.allegro.schema.json2avro.converter.TestUtils.readResource;
+import static tech.allegro.schema.json2avro.converter.TestUtils.toList;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -18,8 +20,12 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import org.apache.avro.Schema;
+import org.apache.avro.SchemaBuilder;
 import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.GenericRecordBuilder;
+import org.junit.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -30,20 +36,6 @@ public class JsonAvroConverterTest {
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
   private static final ObjectWriter WRITER = MAPPER.writer();
-
-  @SuppressWarnings("UnstableApiUsage")
-  public static String readResource(final String name) throws IOException {
-    final URL resource = Resources.getResource(name);
-    return Resources.toString(resource, StandardCharsets.UTF_8);
-  }
-
-  private static <T> List<T> toList(final Iterator<T> iterator) {
-    final List<T> list = new ArrayList<>();
-    while (iterator.hasNext()) {
-      list.add(iterator.next());
-    }
-    return list;
-  }
 
   private static <T> Set<T> toSet(final Iterator<T> iterator) {
     final Set<T> set = new HashSet<>();
@@ -112,5 +104,4 @@ public class JsonAvroConverterTest {
     final GenericData.Record actualAvroObject = converter.convertToGenericDataRecord(WRITER.writeValueAsBytes(jsonObject), schema);
     assertEquals(avroObject, JsonHelper.deserialize(actualAvroObject.toString()), String.format("Test for %s failed", testCaseName));
   }
-
 }

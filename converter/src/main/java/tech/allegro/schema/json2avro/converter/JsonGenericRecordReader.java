@@ -40,6 +40,7 @@ public class JsonGenericRecordReader {
 
     private final ObjectMapper mapper;
     private final UnknownFieldListener unknownFieldListener;
+    private final FieldConversionFailureListener fieldConversionFailureListener;
     private final Function<String, String> nameTransformer;
     // fields from the input json object that carry additional properties;
     // properties inside these fields will be added to the output extra props field
@@ -51,6 +52,7 @@ public class JsonGenericRecordReader {
     public static final class Builder {
         private ObjectMapper mapper = new ObjectMapper();
         private UnknownFieldListener unknownFieldListener;
+        private FieldConversionFailureListener fieldConversionFailureListener;
         private Function<String, String> nameTransformer = Function.identity();
         private Set<String> jsonExtraPropsFields = DEFAULT_JSON_FIELD_NAMES;
         private String avroExtraPropsField = DEFAULT_AVRO_FIELD_NAME;
@@ -65,6 +67,11 @@ public class JsonGenericRecordReader {
 
         public Builder setUnknownFieldListener(UnknownFieldListener unknownFieldListener) {
             this.unknownFieldListener = unknownFieldListener;
+            return this;
+        }
+
+        public Builder setFieldConversionFailureListener(FieldConversionFailureListener fieldConversionFailureListener) {
+            this.fieldConversionFailureListener = fieldConversionFailureListener;
             return this;
         }
 
@@ -84,7 +91,8 @@ public class JsonGenericRecordReader {
         }
 
         public JsonGenericRecordReader build() {
-            return new JsonGenericRecordReader(mapper, unknownFieldListener, nameTransformer, jsonExtraPropsFields, avroExtraPropsField);
+            return new JsonGenericRecordReader(mapper, unknownFieldListener, fieldConversionFailureListener,
+                    nameTransformer, jsonExtraPropsFields, avroExtraPropsField);
         }
     }
 
@@ -103,11 +111,13 @@ public class JsonGenericRecordReader {
      */
     private JsonGenericRecordReader(ObjectMapper mapper,
                                     UnknownFieldListener unknownFieldListener,
+                                    FieldConversionFailureListener fieldConversionFailureListener,
                                     Function<String, String> nameTransformer,
                                     Set<String> jsonExtraPropsFieldNames,
                                     String avroExtraPropsFieldName) {
         this.mapper = mapper;
         this.unknownFieldListener = unknownFieldListener;
+        this.fieldConversionFailureListener = fieldConversionFailureListener;
         this.nameTransformer = nameTransformer;
         this.jsonExtraPropsFieldNames = jsonExtraPropsFieldNames;
         this.avroExtraPropsFieldName = avroExtraPropsFieldName;
@@ -117,7 +127,14 @@ public class JsonGenericRecordReader {
     @SuppressWarnings("unchecked")
     public GenericData.Record read(byte[] data, Schema schema) {
         try {
-            return read(mapper.readValue(data, Map.class), schema);
+            if (fieldConversionFailureListener != null) {
+                fieldConversionFailureListener.reset();
+            }
+            GenericData.Record result = read(mapper.readValue(data, Map.class), schema);
+            if (fieldConversionFailureListener != null) {
+                return fieldConversionFailureListener.flushPostProcessingActions(result);
+            }
+            return result;
         } catch (IOException ex) {
             throw new AvroConversionException("Failed to parse json to map format.", ex);
         }
@@ -151,7 +168,7 @@ public class JsonGenericRecordReader {
             if (jsonExtraPropsFieldNames.contains(fieldName)) {
                 additionalProps.putAll(AdditionalPropertyField.getObjectValues((Map<String, Object>) value));
             } else if (field != null) {
-                record.set(fieldName, read(field, field.schema(), value, path, false));
+                record.set(fieldName, read(field, key, field.schema(), value, path, false));
             } else if (allowAdditionalProps) {
                 additionalProps.put(fieldName, AdditionalPropertyField.getValue(value));
             } else if (unknownFieldListener != null) {
@@ -162,97 +179,112 @@ public class JsonGenericRecordReader {
         if (allowAdditionalProps && additionalProps.size() > 0) {
             record.set(
                 avroExtraPropsFieldName,
-                read(avroExtraPropsField, AdditionalPropertyField.FIELD_SCHEMA, additionalProps, path, false));
+                read(avroExtraPropsField, avroExtraPropsFieldName, AdditionalPropertyField.FIELD_SCHEMA, additionalProps, path, false));
         }
 
         return record.build();
     }
 
-    private Object read(Schema.Field field, Schema schema, Object value, Deque<String> path, boolean silently) {
-        return read(field, schema, value, path, silently, false);
+    private Object read(Schema.Field field, String originalName, Schema schema, Object value, Deque<String> path, boolean silently) {
+        return read(field, originalName, schema, value, path, silently, false);
     }
 
     /**
      * @param enforceString if this parameter is true and the schema type is string, any field value will be converted to string.
      */
     @SuppressWarnings("unchecked")
-    private Object read(Schema.Field field, Schema schema, Object value, Deque<String> path, boolean silently, boolean enforceString) {
-        String fieldName = nameTransformer.apply(field.name());
+    private Object read(Schema.Field field, String originalName, Schema schema, Object value, Deque<String> path, boolean silently, boolean enforceString) {
+        String fieldName = nameTransformer.apply(field.name()); // Always redundant?
         boolean pushed = !fieldName.equals(path.peekLast());
         if (pushed) {
             path.addLast(fieldName);
         }
         Object result;
         LogicalType logicalType = schema.getLogicalType();
-        switch (schema.getType()) {
-            case RECORD:
-                result = onValidType(value, Map.class, path, silently, map -> readRecord(map, schema, path));
-                break;
-            case ARRAY:
-                result = onValidType(value, List.class, path, silently, list -> readArray(field, schema, list, path));
-                break;
-            case MAP:
-                result = onValidType(value, Map.class, path, silently, map -> readMap(field, schema, map, path));
-                break;
-            case UNION:
-                result = readUnion(field, schema, value, path, enforceString);
-                break;
-            case INT:
-                // Only "date" logical type is expected here, because the Avro schema is converted from a Json schema,
-                // and this logical types corresponds to the Json "date" format.
-                if (logicalType != null && logicalType.equals(LogicalTypes.date())) {
-                    result = onValidType(value, String.class, path, silently, DateTimeUtils::getEpochDay);
-                } else {
-                    result = value instanceof String valueString? // implicit cast to String
-                        onValidStringNumber(valueString, path, silently, Integer::parseInt) :
-                        onValidNumber(value, path, silently, Number::intValue);
-                }
-                break;
-            case LONG:
-                // Only "time-micros" and "timestamp-micros" logical types are expected here, because
-                // the Avro schema is converted from a Json schema, and the two logical types corresponds
-                // to the Json "time" and "date-time" formats.
-                if (logicalType != null && logicalType.equals(LogicalTypes.timestampMicros())) {
-                    result = onValidType(value, String.class, path, silently, DateTimeUtils::getEpochMicros);
-                } else if (logicalType != null && logicalType.equals(LogicalTypes.timeMicros())) {
-                    result = onValidType(value, String.class, path, silently, DateTimeUtils::getMicroSeconds);
-                } else {
+        try {
+            switch (schema.getType()) {
+                case RECORD:
+                    result = onValidType(value, Map.class, path, silently, map -> readRecord(map, schema, path));
+                    break;
+                case ARRAY:
+                    result = onValidType(value, List.class, path, silently, list -> readArray(field, originalName, schema, list, path));
+                    break;
+                case MAP:
+                    result = onValidType(value, Map.class, path, silently, map -> readMap(field, originalName, schema, map, path));
+                    break;
+                case UNION:
+                    result = readUnion(field, originalName, schema, value, path, enforceString);
+                    break;
+                case INT:
+                    // Only "date" logical type is expected here, because the Avro schema is converted from a Json schema,
+                    // and this logical types corresponds to the Json "date" format.
+                    if (logicalType != null && logicalType.equals(LogicalTypes.date())) {
+                        result = onValidType(value, String.class, path, silently, DateTimeUtils::getEpochDay);
+                    } else {
+                        result = value instanceof String valueString ? // implicit cast to String
+                                onValidStringNumber(valueString, path, silently, Integer::parseInt) :
+                                onValidNumber(value, path, silently, Number::intValue);
+                    }
+                    break;
+                case LONG:
+                    // Only "time-micros" and "timestamp-micros" logical types are expected here, because
+                    // the Avro schema is converted from a Json schema, and the two logical types corresponds
+                    // to the Json "time" and "date-time" formats.
+                    if (logicalType != null && logicalType.equals(LogicalTypes.timestampMicros())) {
+                        result = onValidType(value, String.class, path, silently, DateTimeUtils::getEpochMicros);
+                    } else if (logicalType != null && logicalType.equals(LogicalTypes.timeMicros())) {
+                        result = onValidType(value, String.class, path, silently, DateTimeUtils::getMicroSeconds);
+                    } else {
+                        result = value instanceof String stringValue ? // implicit cast to String
+                                onValidStringNumber(stringValue, path, silently, Long::parseLong) :
+                                onValidNumber(value, path, silently, Number::longValue);
+                    }
+                    break;
+                case FLOAT:
                     result = value instanceof String stringValue ? // implicit cast to String
-                        onValidStringNumber(stringValue, path, silently, Long::parseLong) :
-                        onValidNumber(value, path, silently, Number::longValue);
-                }
-                break;
-            case FLOAT:
-                result = value instanceof String stringValue ? // implicit cast to String
-                    onValidStringNumber(stringValue, path, silently, Float::parseFloat) :
-                    onValidNumber(value, path, silently, Number::floatValue);
-                break;
-            case DOUBLE:
-                result = value instanceof String stringValue ? // implicit cast to String
-                    onValidStringNumber(stringValue, path, silently, Double::parseDouble) :
-                    onValidNumber(value, path, silently, Number::doubleValue);
-                break;
-            case BOOLEAN:
-                result = onValidType(value, Boolean.class, path, silently, bool -> bool);
-                break;
-            case ENUM:
-                result = onValidType(value, String.class, path, silently, string -> ensureEnum(schema, string, path));
-                break;
-            case STRING:
-                if (enforceString) {
-                    result = value == null ? INCOMPATIBLE : AdditionalPropertyField.getValue(value);
-                } else {
-                    result = onValidType(value, String.class, path, silently, string -> string);
-                }
-                break;
-            case BYTES:
-                result = onValidType(value, String.class, path, silently, this::bytesForString);
-                break;
-            case NULL:
-                result = value == null ? value : INCOMPATIBLE;
-                break;
-            default:
-                throw new AvroTypeException("Unsupported type: " + field.schema().getType());
+                            onValidStringNumber(stringValue, path, silently, Float::parseFloat) :
+                            onValidNumber(value, path, silently, Number::floatValue);
+                    break;
+                case DOUBLE:
+                    result = value instanceof String stringValue ? // implicit cast to String
+                            onValidStringNumber(stringValue, path, silently, Double::parseDouble) :
+                            onValidNumber(value, path, silently, Number::doubleValue);
+                    break;
+                case BOOLEAN:
+                    result = onValidType(value, Boolean.class, path, silently, bool -> bool);
+                    break;
+                case ENUM:
+                    result = onValidType(value, String.class, path, silently, string -> ensureEnum(schema, string, path));
+                    break;
+                case STRING:
+                    if (enforceString) {
+                        result = value == null ? INCOMPATIBLE : AdditionalPropertyField.getValue(value);
+                    } else {
+                        result = onValidType(value, String.class, path, silently, string -> string);
+                    }
+                    break;
+                case BYTES:
+                    result = onValidType(value, String.class, path, silently, this::bytesForString);
+                    break;
+                case NULL:
+                    result = value == null ? value : INCOMPATIBLE;
+                    break;
+                default:
+                    throw new AvroTypeException("Unsupported type: " + field.schema().getType());
+            }
+        } catch (Exception exception) {
+            if (fieldConversionFailureListener != null) {
+                result = fieldConversionFailureListener.onFieldConversionFailure(
+                        fieldName,
+                        originalName,
+                        schema,
+                        value,
+                        PathsPrinter.print(path),
+                        exception
+                );
+            } else {
+                throw exception;
+            }
         }
 
         if (pushed) {
@@ -261,7 +293,7 @@ public class JsonGenericRecordReader {
         return result;
     }
 
-    private List<Object> readArray(Schema.Field field, Schema schema, List<Object> items, Deque<String> path) {
+    private List<Object> readArray(Schema.Field field, String originalName, Schema schema, List<Object> items, Deque<String> path) {
         // When all array elements are supposed to be null or string, we enforce array values to be string.
         // This is to properly handle Json arrays that do not follow the schema.
         Set<Type> nonNullElementTypes;
@@ -276,21 +308,21 @@ public class JsonGenericRecordReader {
         }
         boolean enforceString = nonNullElementTypes.size() == 1 && nonNullElementTypes.contains(Type.STRING);
         return items.stream()
-            .map(item -> read(field, schema.getElementType(), item, path, false, enforceString))
+            .map(item -> read(field, originalName, schema.getElementType(), item, path, false, enforceString))
             .collect(toList());
     }
 
-    private Map<String, Object> readMap(Schema.Field field, Schema schema, Map<String, Object> map, Deque<String> path) {
+    private Map<String, Object> readMap(Schema.Field field, String originalName, Schema schema, Map<String, Object> map, Deque<String> path) {
         Map<String, Object> result = new HashMap<>(map.size());
-        map.forEach((k, v) -> result.put(k, read(field, schema.getValueType(), v, path, false)));
+        map.forEach((k, v) -> result.put(k, read(field, originalName, schema.getValueType(), v, path, false)));
         return result;
     }
 
-    private Object readUnion(Schema.Field field, Schema schema, Object value, Deque<String> path, boolean enforceString) {
+    private Object readUnion(Schema.Field field, String originalName, Schema schema, Object value, Deque<String> path, boolean enforceString) {
         List<Schema> types = schema.getTypes();
         for (Schema type : types) {
             try {
-                Object nestedValue = read(field, type, value, path, true, enforceString);
+                Object nestedValue = read(field, originalName, type, value, path, true, enforceString);
                 if (nestedValue == INCOMPATIBLE) {
                     continue;
                 } else {

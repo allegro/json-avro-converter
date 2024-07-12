@@ -57,6 +57,11 @@ public class JsonAvroConverter {
             return this;
         }
 
+        public Builder setFieldConversionFailureListener(FieldConversionFailureListener listener) {
+            recordReaderBuilder.setFieldConversionFailureListener(listener);
+            return this;
+        }
+
         public JsonAvroConverter build() {
             return new JsonAvroConverter(recordReaderBuilder.build());
         }
