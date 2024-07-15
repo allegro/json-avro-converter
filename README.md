@@ -234,6 +234,22 @@ JsonAvroConverter converter = JsonAvroConverter.builder()
 
 By default, both `_ab_additional_properties` and `_airbyte_additional_properties` are the additional properties field names on the Json object.
 
+### Field Conversion Failure Listener
+
+A listener can be set to react to conversion failures at the field level. It will be called with metadata about the field and failure, and it may do one of the following:
+
+* return a replacement value for the field
+* register a post-processing method for the record to add metadata about the failure to the record's metadata
+* (re)throw an exception if the failure is unrecoverable
+
+Note that it may not edit the record itself. This is to avoid race conditions and other issues that might arise from modifying the record while it is being processed.
+
+```java
+JsonAvroConverter converter = JsonAvroConverter.builder()
+    .setFieldConversionFailureListener(listener)
+    .build();
+```
+
 ## Build
 - The build is upgraded to use Java 14 and Gradle 7.2 to match the build environment of Airbyte.
 - Maven staging and publishing is removed because they are incompatible with the new build environment.
