@@ -6,7 +6,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'com.commercehub.gradle.plugin:gradle-avro-plugin:0.14.0'
+        classpath 'com.github.davidmc24.gradle.plugin:gradle-avro-plugin:1.0.0'
     }
 }
 
@@ -20,7 +20,7 @@ plugins {
     id 'pmd'
 }
 
-apply plugin: 'com.commercehub.gradle.plugin.avro'
+apply plugin: 'com.github.davidmc24.gradle.plugin.avro'
 apply plugin: 'idea'
 
 configurations {
