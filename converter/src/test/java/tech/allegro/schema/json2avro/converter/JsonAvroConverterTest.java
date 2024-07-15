@@ -100,6 +100,7 @@ public class JsonAvroConverterTest {
         .setJsonAdditionalPropsFieldNames(jsonExtraPropsFieldNames)
         .setAvroAdditionalPropsFieldName(avroExtraPropsFieldName)
         .build();
+
     final Schema schema =  new Schema.Parser().parse(JsonHelper.serialize(avroSchema));
     final GenericData.Record actualAvroObject = converter.convertToGenericDataRecord(WRITER.writeValueAsBytes(jsonObject), schema);
     assertEquals(avroObject, JsonHelper.deserialize(actualAvroObject.toString()), String.format("Test for %s failed", testCaseName));

@@ -40,6 +40,7 @@ public class FieldConversionFailureListenerTest {
         final Schema metaSchema = avroSchema.getField("META").schema();
         final Schema changesSchema = metaSchema.getField("CHANGES").schema().getElementType().getTypes().get(0);
         final List<String> expectedRecords = toList(expectedOutputJson.elements()).stream().map(JsonNode::toString).toList();
+
         final JsonAvroConverter converter = JsonAvroConverter.builder()
                 .setNameTransformer(String::toUpperCase)
                 .setFieldConversionFailureListener(new FieldConversionFailureListener() {

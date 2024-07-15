@@ -3,6 +3,8 @@ package tech.allegro.schema.json2avro.converter;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Function;
@@ -34,14 +36,16 @@ public abstract class FieldConversionFailureListener {
         postProcessingActions.add(action);
     }
 
-    public abstract Object onFieldConversionFailure(String avroName,
-                                                    String originalName,
-                                                    Schema schema,
-                                                    Object value,
-                                                    String path,
-                                                    Exception exception);
+    @Nullable
+    public abstract Object onFieldConversionFailure(@Nonnull String avroName,
+                                                    @Nonnull String originalName,
+                                                    @Nonnull Schema schema,
+                                                    @Nonnull Object value,
+                                                    @Nonnull String path,
+                                                    @Nonnull Exception exception);
 
-    public final GenericData.Record flushPostProcessingActions(GenericData.Record record) {
+    @Nonnull
+    public final GenericData.Record flushPostProcessingActions(@Nonnull GenericData.Record record) {
         for (Function<GenericData.Record, GenericData.Record> action : postProcessingActions) {
             record = action.apply(record);
         }
