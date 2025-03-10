@@ -5,27 +5,27 @@ plugins {
     // does not work with Java 10
     // id 'jacoco'
     id 'application'
-    id 'com.github.johnrengelman.shadow' version '5.1.0'
+    alias(libs.plugins.shadow)
 }
 
 shadowJar {
-    baseName = 'json2avro-validator'
-    classifier = ''
+    archiveBaseName = 'json2avro-validator'
+    archiveClassifier = ''
 }
 
 dependencies {
-    compile project(':converter')
+    implementation project(':converter')
+    implementation libs.avro
 
-    compile group: 'com.beust', name: 'jcommander', version: '1.72'
-    compile group: 'com.google.guava', name: 'guava', version: '24.0-jre'
-    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.10'
+    implementation libs.jcommander
+    implementation libs.guava
+    implementation libs.jackson.databind
 
-    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
-    compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
+    implementation libs.bundles.logs
 
-    testCompile group: 'org.spockframework', name: 'spock-core', version: versions.spock
-    testCompile group: 'org.codehaus.groovy', name: 'groovy-all', version: versions.groovy
-    testCompile group: 'com.jayway.awaitility', name: 'awaitility', version: '1.7.0'
+    testImplementation libs.spock
+    testImplementation libs.groovy
+    testImplementation libs.awaitility
 }
 
 mainClassName = 'tech.allegro.schema.json2avro.validator.ValidatorRunner'

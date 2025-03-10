@@ -6,7 +6,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'com.commercehub.gradle.plugin:gradle-avro-plugin:0.14.0'
+        classpath 'com.github.davidmc24.gradle.plugin:gradle-avro-plugin:1.0.0'
     }
 }
 
@@ -15,10 +15,10 @@ plugins {
     id 'groovy'
     // does not work with Java 10
     // id 'jacoco'
-    id 'me.champeau.gradle.jmh' version '0.4.5'
+    alias(libs.plugins.jmh)
 }
 
-apply plugin: 'com.commercehub.gradle.plugin.avro'
+apply plugin: 'com.github.davidmc24.gradle.plugin.avro'
 apply plugin: 'idea'
 
 configurations {
@@ -26,7 +26,7 @@ configurations {
 }
 
 jmh {
-    include = 'tech\\.allegro\\.schema\\.json2avro\\.converter\\..*'
+    includes = ['tech\\.allegro\\.schema\\.json2avro\\.converter\\..*']
     humanOutputFile = null
     jmhVersion = '1.20'
     iterations = 2
@@ -36,17 +36,14 @@ jmh {
     warmup = '10s'
     failOnError = true
     threads = 1
-    duplicateClassesStrategy = 'warn'
+    duplicateClassesStrategy = DuplicatesStrategy.WARN
 }
 
 dependencies {
-    compile group: 'org.apache.avro', name: 'avro', version: '1.9.2'
+    implementation libs.avro
 
-    testCompile group: 'org.spockframework', name: 'spock-core', version: versions.spock
-    testCompile group: 'org.codehaus.groovy', name: 'groovy-all', version: versions.groovy
-
-    jmh 'org.openjdk.jmh:jmh-core:1.20'
-    jmh 'org.openjdk.jmh:jmh-generator-annprocess:1.20'
+    testImplementation libs.spock
+    testImplementation libs.groovy
 }
 
 idea {
