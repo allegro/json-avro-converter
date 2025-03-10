@@ -5,7 +5,7 @@ plugins {
     // does not work with Java 10
     // id 'jacoco'
     id 'application'
-    alias libs.plugins.shadow
+    alias(libs.plugins.shadow)
 }
 
 shadowJar {

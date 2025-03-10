@@ -15,7 +15,7 @@ plugins {
     id 'groovy'
     // does not work with Java 10
     // id 'jacoco'
-    alias libs.plugins.jmh
+    alias(libs.plugins.jmh)
 }
 
 apply plugin: 'com.github.davidmc24.gradle.plugin.avro'
