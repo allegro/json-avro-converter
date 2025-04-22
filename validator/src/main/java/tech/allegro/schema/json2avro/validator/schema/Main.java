@@ -2,6 +2,10 @@ package tech.allegro.schema.json2avro.validator.schema;
 
 import tech.allegro.schema.json2avro.converter.JsonAvroConverter;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 class Test {
     public static void main(String[] args) {
         // Avro schema with one string field: username
@@ -19,6 +23,12 @@ class Test {
     // conversion to binary Avro
         byte[] avro = converter.convertToAvro(json.getBytes(), schema);
 
-        System.out.println("Binary Avro: " + avro.length);
+        // Write avro bytes to file named output.avro
+        try {
+            Files.write(Paths.get("output.avro"), avro);
+            System.out.println("Avro data written to output.avro");
+        } catch (IOException e) {
+            System.err.println("Error writing file: " + e.getMessage());
+        }
     }
 }
