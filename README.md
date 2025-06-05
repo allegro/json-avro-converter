@@ -59,9 +59,6 @@ byte[] avro = converter.convertToAvro(json.getBytes(), schema);
 // conversion to GenericData.Record
 GenericData.Record record = converter.convertToGenericDataRecord(json.getBytes(), new Schema.Parser().parse(schema));
 
-// conversion from binary Avro to JSON
-byte[] binaryJson = converter.convertToJson(avro, schema);
-
 // exception handling
 String invalidJson = "{ \"username\": 8 }";    
 
@@ -70,6 +67,11 @@ try {
 } catch (AvroConversionException ex) {
     System.err.println("Caught exception: " + ex.getMessage());
 }
+
+AvroJsonConverter converter = new AvroJsonConverter();
+
+// conversion from binary Avro to JSON
+byte[] binaryJson = converter.convertToJson(avro, schema);
 ```
 
 ### Advanced usage
@@ -95,6 +97,8 @@ public class CustomFieldConverter implements AvroTypeConverter {
 To use the converter you should add it to the `JsonAvroConverter`, to do that you should build it like that
 ```java
 new JsonAvroConverter(new CompositeJsonToAvroReader(new CustomFieldConverter()))
+
+new AvroJsonConverter()
 ```
 
 ## Validator

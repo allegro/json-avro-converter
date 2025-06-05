@@ -30,7 +30,7 @@ class IntDateConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        GenericData.Record record = converter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
+        GenericData.Record record = avroConverter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
 
         then:
         1 == record.get("date")
@@ -45,7 +45,7 @@ class IntDateConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        GenericData.Record record = converter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
+        GenericData.Record record = avroConverter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
 
         then:
         123 == record.get("date")
@@ -60,7 +60,7 @@ class IntDateConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        converter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
+        avroConverter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
 
         then:
         def e = thrown AvroConversionException
@@ -76,7 +76,7 @@ class IntDateConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        converter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
+        avroConverter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
 
         then:
         def e = thrown AvroConversionException

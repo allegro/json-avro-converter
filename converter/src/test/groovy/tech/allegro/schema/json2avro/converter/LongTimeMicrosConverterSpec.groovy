@@ -3,9 +3,7 @@ package tech.allegro.schema.json2avro.converter
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
 
-import java.time.LocalDateTime
 import java.time.LocalTime
-import java.time.ZoneOffset
 
 class LongTimeMicrosConverterSpec extends BaseConverterSpec {
 
@@ -34,7 +32,7 @@ class LongTimeMicrosConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        GenericData.Record record = converter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
+        GenericData.Record record = avroConverter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
 
         then:
         def expectedTime = LocalTime.of(16, 20, 29, 123456 * 1000)
@@ -50,7 +48,7 @@ class LongTimeMicrosConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        GenericData.Record record = converter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
+        GenericData.Record record = avroConverter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
 
         then:
         1644078029000 == record.get("time")
@@ -65,7 +63,7 @@ class LongTimeMicrosConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        converter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
+        avroConverter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
 
         then:
         def e = thrown AvroConversionException
@@ -81,7 +79,7 @@ class LongTimeMicrosConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        converter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
+        avroConverter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
 
         then:
         def e = thrown AvroConversionException

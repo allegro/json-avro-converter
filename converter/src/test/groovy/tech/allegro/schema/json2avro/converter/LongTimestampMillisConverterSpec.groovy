@@ -49,7 +49,7 @@ class LongTimestampMillisConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        GenericData.Record record = converter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
+        GenericData.Record record = avroConverter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
 
         then:
         LocalDateTime.of(2022, 02, 05, 16, 20, 29).toEpochSecond(ZoneOffset.UTC) * 1000 == record.get("datetime")
@@ -64,7 +64,7 @@ class LongTimestampMillisConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        GenericData.Record record = converter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
+        GenericData.Record record = avroConverter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
 
         then:
         LocalDateTime.of(2022, 02, 05, 16, 20, 29, 234 * 1000 * 1000).toInstant(ZoneOffset.UTC).toEpochMilli() == record.get("datetime")
@@ -79,7 +79,7 @@ class LongTimestampMillisConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        GenericData.Record record = converter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
+        GenericData.Record record = avroConverter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
 
         then:
         1644078029000 == record.get("datetime")
@@ -94,7 +94,7 @@ class LongTimestampMillisConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        converter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
+        avroConverter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
 
         then:
         def e = thrown AvroConversionException
@@ -110,7 +110,7 @@ class LongTimestampMillisConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        converter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
+        avroConverter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
 
         then:
         def e = thrown AvroConversionException
@@ -126,7 +126,7 @@ class LongTimestampMillisConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        GenericData.Record record = converter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schemaWithNullableTimestamp))
+        GenericData.Record record = avroConverter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schemaWithNullableTimestamp))
 
         then:
         null == record.get("datetime")
@@ -141,7 +141,7 @@ class LongTimestampMillisConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        converter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schemaWithNullableTimestamp))
+        avroConverter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schemaWithNullableTimestamp))
 
         then:
         def e = thrown AvroConversionException

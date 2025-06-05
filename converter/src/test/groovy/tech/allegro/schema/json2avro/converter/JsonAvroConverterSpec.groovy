@@ -1,15 +1,12 @@
 package tech.allegro.schema.json2avro.converter
 
-import groovy.json.JsonSlurper
+
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
-import spock.lang.Specification
-
 import com.fasterxml.jackson.databind.ObjectMapper
 import spock.lang.Unroll
 import tech.allegro.schema.json2avro.converter.types.AvroTypeConverter
 
-import java.nio.ByteBuffer
 import java.time.LocalDateTime
 import java.time.ZoneOffset;
 
@@ -63,10 +60,10 @@ class JsonAvroConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        byte[] avro = converter.convertToAvro(json.bytes, schema)
+        byte[] avro = avroConverter.convertToAvro(json.bytes, schema)
 
         then:
-        toMap(json) == toMap(converter.convertToJson(avro, schema))
+        toMap(json) == toMap(jsonConverter.convertToJson(avro, schema))
     }
 
     def "should convert bytes generic record"() {
@@ -91,10 +88,10 @@ class JsonAvroConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        byte[] avro = converter.convertToAvro(json.bytes, schema)
+        byte[] avro = avroConverter.convertToAvro(json.bytes, schema)
 
         then:
-        toMap(json) == toMap(converter.convertToJson(avro, schema))
+        toMap(json) == toMap(jsonConverter.convertToJson(avro, schema))
     }
 
     def "should throw exception when parsing record with mismatched primitives"() {
@@ -119,7 +116,7 @@ class JsonAvroConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        converter.convertToAvro(json.bytes, schema)
+        avroConverter.convertToAvro(json.bytes, schema)
 
         then:
         def e = thrown AvroConversionException
@@ -157,7 +154,7 @@ class JsonAvroConverterSpec extends BaseConverterSpec {
         byte[] avro = converterNotFailingOnUnknown.convertToAvro(json.bytes, schema)
 
         then:
-        def result = toMap(converterNotFailingOnUnknown.convertToJson(avro, schema))
+        def result = toMap(jsonConverter.convertToJson(avro, schema))
         result.field_string == "foobar"
         result.keySet().size() == 1
 
@@ -224,7 +221,7 @@ class JsonAvroConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        converter.convertToAvro(json.bytes, schema)
+        avroConverter.convertToAvro(json.bytes, schema)
 
         then:
         thrown AvroConversionException
@@ -263,10 +260,10 @@ class JsonAvroConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        byte[] avro = converter.convertToAvro(json.bytes, schema)
+        byte[] avro = avroConverter.convertToAvro(json.bytes, schema)
 
         then:
-        toMap(json) == toMap(converter.convertToJson(avro, schema))
+        toMap(json) == toMap(jsonConverter.convertToJson(avro, schema))
     }
 
     def "should convert nested record with missing field"() {
@@ -300,7 +297,7 @@ class JsonAvroConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        converter.convertToAvro(json.bytes, schema)
+        avroConverter.convertToAvro(json.bytes, schema)
 
         then:
         thrown AvroConversionException
@@ -334,10 +331,10 @@ class JsonAvroConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        byte[] avro = converter.convertToAvro(json.bytes, schema)
+        byte[] avro = avroConverter.convertToAvro(json.bytes, schema)
 
         then:
-        toMap(json) == toMap(converter.convertToJson(avro, schema))
+        toMap(json) == toMap(jsonConverter.convertToJson(avro, schema))
     }
 
     def "should fail when converting nested map with mismatched value type"() {
@@ -366,7 +363,7 @@ class JsonAvroConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        converter.convertToAvro(json.bytes, schema)
+        avroConverter.convertToAvro(json.bytes, schema)
 
         then:
         thrown AvroConversionException
@@ -411,10 +408,10 @@ class JsonAvroConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        byte[] avro = converter.convertToAvro(json.bytes, schema)
+        byte[] avro = avroConverter.convertToAvro(json.bytes, schema)
 
         then:
-        toMap(json) == toMap(converter.convertToJson(avro, schema))
+        toMap(json) == toMap(jsonConverter.convertToJson(avro, schema))
     }
 
     def "should convert nested array of primitives"() {
@@ -446,10 +443,10 @@ class JsonAvroConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        byte[] avro = converter.convertToAvro(json.bytes, schema)
+        byte[] avro = avroConverter.convertToAvro(json.bytes, schema)
 
         then:
-        toMap(json) == toMap(converter.convertToJson(avro, schema))
+        toMap(json) == toMap(jsonConverter.convertToJson(avro, schema))
     }
 
     def "should convert nested array of records"() {
@@ -494,10 +491,10 @@ class JsonAvroConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        byte[] avro = converter.convertToAvro(json.bytes, schema)
+        byte[] avro = avroConverter.convertToAvro(json.bytes, schema)
 
         then:
-        toMap(json) == toMap(converter.convertToJson(avro, schema))
+        toMap(json) == toMap(jsonConverter.convertToJson(avro, schema))
     }
 
     def "should convert nested union of primitives"() {
@@ -522,10 +519,10 @@ class JsonAvroConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        byte[] avro = converter.convertToAvro(json.bytes, schema)
+        byte[] avro = avroConverter.convertToAvro(json.bytes, schema)
 
         then:
-        toMap(json) == toMap(converter.convertToJson(avro, schema))
+        toMap(json) == toMap(jsonConverter.convertToJson(avro, schema))
     }
 
     def "should convert nested union of records"() {
@@ -573,10 +570,10 @@ class JsonAvroConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        byte[] avro = converter.convertToAvro(json.bytes, schema)
+        byte[] avro = avroConverter.convertToAvro(json.bytes, schema)
 
         then:
-        toMap(json) == toMap(converter.convertToJson(avro, schema))
+        toMap(json) == toMap(jsonConverter.convertToJson(avro, schema))
     }
 
     def "should convert nested union with null and primitive should result in an optional field"() {
@@ -606,10 +603,10 @@ class JsonAvroConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        byte[] avro = converter.convertToAvro(json.bytes, schema)
+        byte[] avro = avroConverter.convertToAvro(json.bytes, schema)
 
         then:
-        def result = toMap(converter.convertToJson(avro, schema))
+        def result = toMap(jsonConverter.convertToJson(avro, schema))
         result.field_string == toMap(json).field_string
         result.field_union == null
     }
@@ -653,10 +650,10 @@ class JsonAvroConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        byte[] avro = converter.convertToAvro(json.bytes, schema)
+        byte[] avro = avroConverter.convertToAvro(json.bytes, schema)
 
         then:
-        def result = toMap(converter.convertToJson(avro, schema))
+        def result = toMap(jsonConverter.convertToJson(avro, schema))
         result.field_string == toMap(json).field_string
         result.field_union == null
     }
@@ -704,10 +701,10 @@ class JsonAvroConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        byte[] avro = converter.convertToAvro(json.bytes, schema)
+        byte[] avro = avroConverter.convertToAvro(json.bytes, schema)
 
         then:
-        def result = toMap(converter.convertToJson(avro, schema))
+        def result = toMap(jsonConverter.convertToJson(avro, schema))
         result.field_string == toMap(json).field_string
         result.field_union == null
     }
@@ -740,7 +737,7 @@ class JsonAvroConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        def result = converter.convertToJson(converter.convertToAvro(json.bytes, schema), schema)
+        def result = jsonConverter.convertToJson(avroConverter.convertToAvro(json.bytes, schema), schema)
 
         then:
         toMap(result) == toMap(json)
@@ -781,7 +778,7 @@ class JsonAvroConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        converter.convertToJson(converter.convertToAvro(json.bytes, schema), schema)
+        avroConverter.convertToJson(avroConverter.convertToAvro(json.bytes, schema), schema)
 
         then:
         def exception = thrown(AvroConversionException)
@@ -814,7 +811,7 @@ class JsonAvroConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        def result = converter.convertToJson(converter.convertToAvro(json.bytes, schema), schema)
+        def result = jsonConverter.convertToJson(avroConverter.convertToAvro(json.bytes, schema), schema)
 
         then:
         toMap(result) == toMap(json)
@@ -846,7 +843,7 @@ class JsonAvroConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        converter.convertToJson(converter.convertToAvro(json.bytes, schema), schema)
+        avroConverter.convertToJson(avroConverter.convertToAvro(json.bytes, schema), schema)
 
         then:
         def exception = thrown(AvroConversionException)
@@ -891,10 +888,10 @@ class JsonAvroConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        byte[] avro = converter.convertToAvro(json.bytes, schema)
+        byte[] avro = avroConverter.convertToAvro(json.bytes, schema)
 
         then:
-        !toMap(converter.convertToJson(avro, schema)).payload.foo
+        !toMap(jsonConverter.convertToJson(avro, schema)).payload.foo
     }
 
     def "should convert specific record"() {
@@ -909,7 +906,7 @@ class JsonAvroConverterSpec extends BaseConverterSpec {
         def schema = SpecificRecordConvertTest.getClassSchema()
 
         when:
-        SpecificRecordConvertTest result = converter.convertToSpecificRecord(json.bytes, clazz, schema)
+        SpecificRecordConvertTest result = avroConverter.convertToSpecificRecord(json.bytes, clazz, schema)
         then:
         result != null && result instanceof SpecificRecordConvertTest && result.getTest() == "test"
     }
@@ -921,8 +918,8 @@ class JsonAvroConverterSpec extends BaseConverterSpec {
         def schema = SpecificRecordConvertTest.getClassSchema()
 
         when:
-        SpecificRecordConvertTest record = converter.convertToSpecificRecord(json.bytes, clazz, schema)
-        def result = converter.convertToJson(record)
+        SpecificRecordConvertTest record = avroConverter.convertToSpecificRecord(json.bytes, clazz, schema)
+        def result = jsonConverter.convertToJson(record)
         then:
         result != null && new String(result) == json
     }
@@ -1014,13 +1011,5 @@ class JsonAvroConverterSpec extends BaseConverterSpec {
 
         then:
         "custom-foo" == record.get("customString")
-    }
-
-    def toMap(String json) {
-        slurper.parseText(json)
-    }
-
-    def toMap(byte[] json) {
-        slurper.parse(json)
     }
 }

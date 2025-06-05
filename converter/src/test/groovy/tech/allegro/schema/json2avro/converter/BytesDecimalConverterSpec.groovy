@@ -55,7 +55,7 @@ class BytesDecimalConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        GenericData.Record record = converter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
+        GenericData.Record record = avroConverter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
 
         then:
         new BigDecimal("123.45600") == new BigDecimal(new BigInteger(((ByteBuffer) record.get("byteDecimal")).array()), 5)
@@ -70,7 +70,7 @@ class BytesDecimalConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        converter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
+        avroConverter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
 
         then:
         def e = thrown AvroConversionException
@@ -111,7 +111,7 @@ class BytesDecimalConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        GenericData.Record record = converter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
+        GenericData.Record record = avroConverter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
 
         then:
         new BigDecimal("123.45600") == new BigDecimal(new BigInteger(((ByteBuffer) record.get("byteDecimal")).array()), 5)
@@ -126,7 +126,7 @@ class BytesDecimalConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        converter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
+        avroConverter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
 
         then:
         def e = thrown AvroConversionException
@@ -142,7 +142,7 @@ class BytesDecimalConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        converter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schemaWithNullableDecimal))
+        avroConverter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schemaWithNullableDecimal))
 
         then:
         def e = thrown AvroConversionException

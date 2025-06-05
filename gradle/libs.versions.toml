@@ -1,0 +1,36 @@
+[versions]
+avro = '1.11.4'
+jmh = '0.7.3'
+shadow = '8.1.1'
+axion-release = '1.18.17'
+nexus-publish = '2.0.0'
+jcommander = '1.82'
+guava = '33.1.0-jre'
+jackson = '2.17.0'
+slf4j = '2.0.13'
+logback-classic = '1.5.17'
+
+spock = '2.4-M5-groovy-4.0'
+groovy = '4.0.24'
+awaitility = '4.3.0'
+
+[libraries]
+avro = { group = 'org.apache.avro', name = 'avro', version.ref = 'avro'}
+jcommander = { group = 'com.beust', name = 'jcommander', version.ref = 'jcommander'}
+guava = { group = 'com.google.guava', name = 'guava', version.ref = 'guava'}
+jackson-databind = { group = 'com.fasterxml.jackson.core', name = 'jackson-databind', version.ref = 'jackson'}
+slf4j-api = { group = 'org.slf4j', name = 'slf4j-api', version.ref = 'slf4j' }
+logback-classic = { group = 'ch.qos.logback', name = 'logback-classic', version.ref = 'logback-classic'}
+awaitility = { group = 'org.awaitility', name = 'awaitility', version.ref = 'awaitility'}
+
+spock = { group = 'org.spockframework', name = 'spock-core', version.ref = 'spock'}
+groovy = { group = 'org.apache.groovy', name = 'groovy-all', version.ref = 'groovy'}
+
+[plugins]
+axion-release = { id = 'pl.allegro.tech.build.axion-release', version.ref = 'axion-release'}
+nexus-publish = { id = 'io.github.gradle-nexus.publish-plugin', version.ref = 'nexus-publish'}
+jmh = { id = 'me.champeau.jmh', version.ref = 'jmh' }
+shadow = { id = 'com.github.johnrengelman.shadow', version.ref = 'shadow'}
+
+[bundles]
+logs = ['slf4j-api', 'logback-classic']

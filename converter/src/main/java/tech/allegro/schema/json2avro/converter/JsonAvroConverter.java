@@ -2,18 +2,12 @@ package tech.allegro.schema.json2avro.converter;
 
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
-import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericDatumWriter;
-import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.io.BinaryDecoder;
 import org.apache.avro.io.BinaryEncoder;
-import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.Decoder;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.EncoderFactory;
-import org.apache.avro.io.NoWrappingJsonEncoder;
 import org.apache.avro.specific.SpecificDatumReader;
-import org.apache.avro.specific.SpecificDatumWriter;
 import org.apache.avro.specific.SpecificRecord;
 import org.apache.avro.specific.SpecificRecordBase;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -83,32 +77,4 @@ public class JsonAvroConverter {
         return convertToSpecificRecord(data, clazz, new Schema.Parser().parse(schema));
     }
 
-    public byte[] convertToJson(byte[] avro, String schema) {
-        return convertToJson(avro, new Schema.Parser().parse(schema));
-    }
-
-    public byte[] convertToJson(byte[] avro, Schema schema) {
-        try {
-            BinaryDecoder binaryDecoder = DecoderFactory.get().binaryDecoder(avro, null);
-            GenericRecord record = new GenericDatumReader<GenericRecord>(schema).read(null, binaryDecoder);
-            return convertToJson(record);
-        } catch (IOException e) {
-            throw new AvroConversionException("Failed to create avro structure.", e);
-        }
-    }
-
-    public byte[] convertToJson(GenericRecord record) {
-        try {
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            NoWrappingJsonEncoder jsonEncoder = new NoWrappingJsonEncoder(record.getSchema(), outputStream);
-            DatumWriter<GenericRecord> writer = record instanceof SpecificRecord ?
-                new SpecificDatumWriter<>(record.getSchema()) :
-                new GenericDatumWriter<>(record.getSchema());
-            writer.write(record, jsonEncoder);
-            jsonEncoder.flush();
-            return outputStream.toByteArray();
-        } catch (IOException e) {
-            throw new AvroConversionException("Failed to convert to JSON.", e);
-        }
-    }
 }
