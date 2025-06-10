@@ -33,7 +33,7 @@ class LongTimestampMicrosConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        GenericData.Record record = converter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
+        GenericData.Record record = avroConverter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
 
         then:
         def expectedInstant = LocalDateTime.of(2022, 02, 05, 16, 20, 29, 123456 * 1000).toInstant(ZoneOffset.UTC)
@@ -49,7 +49,7 @@ class LongTimestampMicrosConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        GenericData.Record record = converter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
+        GenericData.Record record = avroConverter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
 
         then:
         1644078029000 == record.get("datetime")
@@ -64,7 +64,7 @@ class LongTimestampMicrosConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        converter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
+        avroConverter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
 
         then:
         def e = thrown AvroConversionException
@@ -80,7 +80,7 @@ class LongTimestampMicrosConverterSpec extends BaseConverterSpec {
         '''
 
         when:
-        converter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
+        avroConverter.convertToGenericDataRecord(json.bytes, new Schema.Parser().parse(schema))
 
         then:
         def e = thrown AvroConversionException

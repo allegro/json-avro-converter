@@ -4,6 +4,7 @@ import org.apache.avro.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tech.allegro.schema.json2avro.converter.JsonAvroConverter;
+import tech.allegro.schema.json2avro.converter.AvroJsonConverter;
 import tech.allegro.schema.json2avro.validator.schema.ValidationMode;
 import tech.allegro.schema.json2avro.validator.schema.ValidationOutput;
 import tech.allegro.schema.json2avro.validator.schema.ValidationResult;
@@ -25,10 +26,13 @@ public class AvroValidator implements Validator {
 
     private final ValidationOutput output;
 
-    private final JsonAvroConverter converter;
+    private final JsonAvroConverter jsonAvroConverter;
+
+    private final AvroJsonConverter avroJsonConverter;
 
     public AvroValidator(byte[] schema, byte[] content, ValidationMode mode, ValidationOutput output) {
-        converter = new JsonAvroConverter();
+        jsonAvroConverter = new JsonAvroConverter();
+        avroJsonConverter = new AvroJsonConverter();
         try {
             this.schema = new Schema.Parser().parse(new ByteArrayInputStream(schema));
             this.content = content;
@@ -60,7 +64,7 @@ public class AvroValidator implements Validator {
     private byte [] convertAvroToJson(byte [] avro) {
         try {
             logger.debug("Converting AVRO to JSON");
-            byte [] json = converter.convertToJson(avro, schema);
+            byte [] json = avroJsonConverter.convertToJson(avro, schema);
             logger.debug("Validation result: success. JSON: \n{}", new String(json));
             output.write(json);
             return json;
@@ -72,7 +76,7 @@ public class AvroValidator implements Validator {
     private byte [] convertJsonToAvro(byte [] json) {
         try {
             logger.debug("Converting JSON to AVRO");
-            byte [] avro = converter.convertToAvro(json, schema);
+            byte [] avro = jsonAvroConverter.convertToAvro(json, schema);
             logger.debug("Validation result: success. AVRO: \n{}", new String(avro));
             output.write(avro);
             return avro;
