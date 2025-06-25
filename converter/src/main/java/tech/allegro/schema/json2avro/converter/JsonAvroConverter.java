@@ -9,7 +9,6 @@ import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.avro.specific.SpecificRecord;
-import org.apache.avro.specific.SpecificRecordBase;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.ByteArrayInputStream;
@@ -60,7 +59,7 @@ public class JsonAvroConverter {
         return recordReader.read(data, schema);
     }
 
-    public <T extends SpecificRecordBase & SpecificRecord> T convertToSpecificRecord(byte[] jsonData, Class<T> clazz, Schema schema) {
+    public <T extends SpecificRecord> T convertToSpecificRecord(byte[] jsonData, Class<T> clazz, Schema schema) {
         byte[] avroBinaryData = this.convertToAvro(jsonData, schema);
         SpecificDatumReader<T> reader = new SpecificDatumReader<T>(clazz);
         ByteArrayInputStream inStream = new ByteArrayInputStream(avroBinaryData);
@@ -73,7 +72,7 @@ public class JsonAvroConverter {
         }
     }
 
-    public <T extends SpecificRecordBase & SpecificRecord> T convertToSpecificRecord(byte[] data, Class<T> clazz, String schema) {
+    public <T extends SpecificRecord> T convertToSpecificRecord(byte[] data, Class<T> clazz, String schema) {
         return convertToSpecificRecord(data, clazz, new Schema.Parser().parse(schema));
     }
 
