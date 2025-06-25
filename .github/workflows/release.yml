@@ -33,7 +33,7 @@ jobs:
           FORCE_VERSION: ${{ github.event.inputs.forceVersion }}
 
       - name: Publish to Sonatype
-        run: ./gradlew publishToSonatype
+        run: ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
